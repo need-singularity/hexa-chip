@@ -1,0 +1,62 @@
+# .roadmap.hexa_chip — repo-overall tracker
+
+> Cross-cutting state: invariant lattice, release cadence, cycle history,
+> deadlines, pointers. Sister of `hexa-rtsc` / `hexa-codex` / `anima` under
+> `need-singularity` org.
+
+**Last sync**: 2026-05-06 · **Current release**: v1.0.0 · **Branch**: `main`
+
+---
+
+## §0 Terminal goal — 28-verb chip substrate (7 그룹 모두 wired)
+
+hexa-chip 도착지 = **28-verb semiconductor stack (architecture + design + process + packaging + accelerator + consciousness) 모두 working spec + 1+ 그룹 wired tape-out simulation**.
+
+DoD:
+1. `architecture` 그룹 ISA n=6 RTL gen 통합 .hexa.
+2. `design` 그룹 EDA + RTL gen + verify-test 자동 pipeline.
+3. `process` 그룹 wafer/yield n=6 closed-form fit (Samsung/SK/TSMC public).
+4. `packaging` 그룹 advanced + 3D + HBM + interconnect.
+5. `accelerator` 그룹 NPU + PIM + photonic 통합.
+6. `consciousness` 그룹 chip + SoC anima cross-link.
+
+## §A.1 Invariant lattice (n=6)
+
+```
+σ(6) · φ(6) = n · τ(6) = J₂ = 24
+   12   ·   2  =  6  ·   4  = 24
+```
+
+| Symbol | Value | Role | Chip projection |
+|--------|-------|------|-----------------|
+| σ(6)   | 12    | sigma — cardinality bin | 12 process node generations (180nm → 2nm) |
+| τ(6)   | 4     | tau — state quartet | 4 design stages (RTL / synth / P&R / sign-off) |
+| φ(6)   | 2     | phi — verdict bit | digital / analog |
+| J₂     | 24    | Mathieu / Leech | 24-layer interconnect stack ceiling |
+
+## §A.2 Release cadence
+
+| Version | Date | Status | Highlights |
+|---------|------|--------|------------|
+| v1.0.0 | 2026-05-06 | RELEASED | 28 verb 시드 + 7 그룹 표 |
+| v1.1.0 | ~2026-08 (TARGET) | planned | `architecture` 그룹 ISA n=6 RTL gen 통합 .hexa |
+| v1.2.0 | ~2026-10 | planned | `design` 그룹 EDA + RTL gen + verify-test 자동 pipeline |
+| v1.3.0 | ~2026-12 | planned | `process` 그룹 wafer/yield n=6 closed-form fit |
+| v2.0.0 | ~2027-Q3 | ASPIRATIONAL | `packaging` + `accelerator` + `consciousness` wired |
+
+## §A.3 Cycle history
+
+- **Cycle 0 (2026-05-06)** — v1.0.0 initial extraction from n6-architecture@c0f1f570. 28 verb / 7 그룹 cp -R.
+
+## §A.4 Falsifier preregister
+
+- **F-CHIP-1** — process node 12-generation 의 σ scaling (Moore's law n=6 fit), 2nm/3nm 측정 일치?
+- **F-CHIP-2** — NPU n=6 dataflow τ=4 stage, Samsung Exynos / Apple Neural Engine 비교?
+- **F-CHIP-3** — HBM stack height σ-φ=10 layer ceiling, HBM4 측정?
+- **F-CHIP-4** — consciousness-chip n=6 invariant claim, Φ (IIT) measure 측정 fit?
+
+## §A.5 Pending decisions
+
+- 한국 fab partner (Samsung / SK Hynix / Hyundai Mobis) 외부 collab 강도.
+- consciousness-chip 의 의식 측정 가능성 (Φ vs PCI vs n=6 closed-form).
+- chip-sc + hexa-rtsc 의존 (RT-SC chip → 0-resistance interconnect 시점).
