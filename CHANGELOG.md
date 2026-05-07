@@ -5,6 +5,27 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 12)
+
+- `verify/numerics_hbm_solver.hexa` — **F-CHIP-3 T2 third-stack**.
+  Jacobi iteration on a 1-D steady-state Laplace equation across an
+  HBM stack with N = σ-φ = 10 interior layers. Boundaries: T_bot=25°C,
+  T_top=95°C. Converges to linear profile in 244 iters ∈ [σ², σ²·n] =
+  [144, 864]; predicted log(ε)/log(ρ) = 223 (1.10× actual). 11 checks:
+  N=σ-φ; boundary preservation; profile within 0.5°C of linear; two
+  start-temperatures agree; monotone; midpoint mean = (T_bot+T_top)/2.
+  Sentinel: `__HEXA_CHIP_NUMERICS_HBM_SOLVER__ PASS`.
+- Aggregate: 16/16 → 17/17 PASS.
+- **F-CHIP-3 closure: 33% → 67%** (T1 ✓ + T2 ×3) — sat-1 met.
+
+### sat-1 milestone (2026-05-08 — end of RSC iter 12)
+
+All 3 measurable falsifiers (F-CHIP-1/2/3) reach **67% closure**
+(T1 algebraic ✓ + T2 numerical ×3 each). Stop-condition `sat-1` of
+recipe §7.2 is met. Remaining T3 (empirical hardware) deferred to
+Stage-1+ tape-out cycles per recipe §9. Loop continues toward sat-2
+(full 16-script inventory) — current 12 verify scripts vs 16 target.
+
 ### Added (2026-05-08 — RSC iter 11)
 
 - `verify/numerics_npu_solver.hexa` — **F-CHIP-2 T2 third-stack**.
