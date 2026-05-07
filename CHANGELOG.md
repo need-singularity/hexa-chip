@@ -5,6 +5,26 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed (2026-05-08 — RSC iter 16, **sat-1 + sat-2 reached**)
+
+- `verify/falsifier_check.hexa` — refreshed from a roadmap-presence
+  check to a **closure-pct tracker** per recipe §3. Now reports per-
+  falsifier T1/T2/T3 status with stack counts, plus sat-1 / sat-2
+  milestone verdicts:
+    - F-CHIP-1: T1 ✓ + T2 (3/3) → **67%**
+    - F-CHIP-2: T1 ✓ + T2 (3/3) → **67%**
+    - F-CHIP-3: T1 ✓ + T2 (3/3) → **67%**
+    - F-CHIP-4: 0% (consciousness-chip; non-measurable, Stage-3+ scope)
+    - sat-1 (3 measurable falsifiers ≥ 67% AND each T2 stack ≥ 3): ✓
+    - sat-2 (verify/*.hexa ≥ 16): ✓ (22 on disk)
+- Sentinel preserved: `__HEXA_CHIP_FALSIFIER_CHECK__ PASS` retired in
+  favor of human-readable PASS line + closure table.
+- Aggregate: 20/20 PASS unchanged.
+- **RSC loop terminal condition met** (recipe §7.2): both sat-1 and
+  sat-2 satisfied. T3 empirical closure remaining (Stage-1+ tape-out
+  per recipe §9). Loop is self-terminating — next chunks are out of
+  recipe scope (hardware bench / live data feeds).
+
 ### Added (2026-05-08 — RSC iter 15)
 
 - `verify/lint_numerics.hexa` — **meta-tier lint enforcer** (recipe §4 +
