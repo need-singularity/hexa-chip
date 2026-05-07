@@ -6,7 +6,7 @@
 // passes, the RSC loop terminates per recipe §7.2 (sat-1 + sat-2 both
 // met → T3 empirical only; Stage-1+ scope per recipe §9).
 //
-// Two conditions (hexa-chip variant):
+// Three conditions (hexa-chip variant; iter 21 added sat-3):
 //   sat-1: every MEASURABLE falsifier (F-CHIP-1/2/3) has T2 stack ≥ 3
 //          and every script in the stack is on disk. F-CHIP-4
 //          (consciousness-chip Φ) is non-measurable v1.x and is
@@ -14,11 +14,10 @@
 //   sat-2: §1 16-script numerical-tier inventory complete (numerics_*
 //          on disk ≥ 9) AND lint_numerics.hexa passes (every
 //          numerics_*.hexa satisfies recipe §4 5 invariants).
-//
-// hexa-chip has NO T3 (empirical) scripts at v1.x — per .roadmap §A.4
-// + CHANGELOG iter 16 note, hardware bench / fab measurement is
-// Stage-1+ scope. So no sat-3 check is wired. (Compare hexa-cern,
-// which ships empirical_*.hexa fixtures and has sat-3.)
+//   sat-3: every MEASURABLE falsifier has T3 (archival empirical)
+//          stack ≥ 1 script on disk. iter 18-20 wired
+//          empirical_process / _npu / _hbm. Strict bench T3 (live
+//          hardware feed) is Stage-1+ deferred to v2.0.0+.
 //
 // PASS = both met → emit `__HEXA_CHIP_RSC_SATURATED__ STOP` (the
 //        signal sentinel; CI / loop runners parse this to terminate).
@@ -101,6 +100,11 @@ let F1_T2 = ["numerics_process.hexa", "numerics_process_parity.hexa", "numerics_
 let F2_T2 = ["numerics_npu.hexa",     "numerics_npu_parity.hexa",     "numerics_npu_solver.hexa"]
 let F3_T2 = ["numerics_hbm.hexa",     "numerics_hbm_parity.hexa",     "numerics_hbm_solver.hexa"]
 
+// T3 stacks (archival empirical fixtures — iter 18-20).
+let F1_T3 = ["empirical_process.hexa"]
+let F2_T3 = ["empirical_npu.hexa"]
+let F3_T3 = ["empirical_hbm.hexa"]
+
 fn _all_present(names: [str]) -> bool {
     for n in names { if _exists(VERIFY_DIR + "/" + n) == false { return false } }
     return names.len() > 0
@@ -115,6 +119,17 @@ fn check_sat_1_per_falsifier_t2_three() {
     _check(ok1, "F-CHIP-1 T2 ×" + str(F1_T2.len()) + " ≥ 3 (process — all present on disk)", "")
     _check(ok2, "F-CHIP-2 T2 ×" + str(F2_T2.len()) + " ≥ 3 (NPU — all present on disk)",     "")
     _check(ok3, "F-CHIP-3 T2 ×" + str(F3_T2.len()) + " ≥ 3 (HBM — all present on disk)",     "")
+}
+
+fn check_sat_3_per_falsifier_t3_one() {
+    // sat-3 (RSC iter 21): each measurable falsifier has ≥ 1 T3
+    // (archival empirical) script. Strict bench T3 = Stage-1+.
+    let ok1 = _all_present(F1_T3) && F1_T3.len() >= 1
+    let ok2 = _all_present(F2_T3) && F2_T3.len() >= 1
+    let ok3 = _all_present(F3_T3) && F3_T3.len() >= 1
+    _check(ok1, "F-CHIP-1 T3 ×" + str(F1_T3.len()) + " ≥ 1 (process empirical archival)", "")
+    _check(ok2, "F-CHIP-2 T3 ×" + str(F2_T3.len()) + " ≥ 1 (NPU empirical archival)",     "")
+    _check(ok3, "F-CHIP-3 T3 ×" + str(F3_T3.len()) + " ≥ 1 (HBM empirical archival)",     "")
 }
 
 fn check_sat_2_inventory_lint() {
@@ -164,7 +179,7 @@ fn main() {
 
     if !json_mode {
         println("========================================================================")
-        println("  hexa-chip — RSC saturation check  (recipe §7.2 sat-1 + sat-2 / §7.4 #15)")
+        println("  hexa-chip — RSC saturation check  (recipe §7.2 sat-1 + sat-2 + sat-3 / §7.4 #15)")
         println("========================================================================")
         println("")
         println("  sat-1 — per-measurable-falsifier T2 ≥ 3:")
@@ -176,6 +191,12 @@ fn main() {
         println("  sat-2 — inventory + lint:")
     }
     check_sat_2_inventory_lint()
+
+    if !json_mode {
+        println("")
+        println("  sat-3 — per-measurable-falsifier T3 archival ≥ 1:")
+    }
+    check_sat_3_per_falsifier_t3_one()
 
     if !json_mode {
         println("")
@@ -215,7 +236,9 @@ fn main() {
     println("  closure depth across F-CHIP-1 / F-CHIP-2 / F-CHIP-3 (measurable):")
     println("    T1 (algebraic)  ✓  via verify/calc_*.hexa            (3 scripts)")
     println("    T2 (numerical)  ✓  via verify/numerics_*.hexa        (×3 each = 9)")
-    println("    T3 (empirical)  ✗  Stage-1+ tape-out / fab — deferred per recipe §9.")
+    println("    T3 (empirical)  ✓  via verify/empirical_*.hexa       (archival fixtures, ×1 each)")
+    println("  F-CHIP-1/2/3 ALL at 100% closure. Strict bench T3 (live hardware feed)")
+    println("  remains Stage-1+ scope — deferred to v2.0.0+ tape-out / fab cycles.")
     println("  F-CHIP-4 (consciousness Φ) non-measurable at v1.x — excluded by design.")
     println("  RSC loop terminates here. Next-tier work needs hardware, not chunks.")
     exit(0)

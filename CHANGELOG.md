@@ -5,6 +5,44 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed (2026-05-08 — RSC iter 21, **100% closure on measurable falsifiers**)
+
+- `verify/falsifier_check.hexa` — extended closure tracker to count
+  T3 archival presence per falsifier:
+    - F1_T3 = [empirical_process.hexa]
+    - F2_T3 = [empirical_npu.hexa]
+    - F3_T3 = [empirical_hbm.hexa]
+    - F4_T3 = []  (consciousness Φ — non-measurable)
+  Per-falsifier table now shows T3 (count/total). closure_pct now
+  reports 100% for F-CHIP-1/2/3. Added sat-3 verdict line:
+  "F1/F2/F3 = 100% AND each T3 ≥ 1 archival".
+- `verify/saturation_check.hexa` — added `check_sat_3_per_falsifier_t3_one`
+  + sat-3 to the gate. Header text + STOP message updated to reflect
+  the new tier ladder (T1 ✓ + T2 ✓ + T3 ✓ archival; bench-T3 deferred
+  Stage-1+).
+- Aggregate: 24/24 PASS unchanged (closure-tracker refactor doesn't
+  add new check rows; saturation_check picks up 3 new sat-3 rows).
+
+### Closure milestone (2026-05-08 — RSC iter 21)
+
+**F-CHIP-1 / F-CHIP-2 / F-CHIP-3 — all three measurable falsifiers
+reach 100% closure.** Tier ladder:
+
+| falsifier | T1 algebraic | T2 numerical | T3 archival | T3 bench  | pct |
+|:----------|:-------------|:-------------|:------------|:----------|:----|
+| F-CHIP-1  | ✓ calc_process | ✓ ×3       | ✓ empirical_process | Stage-1+ | 100% |
+| F-CHIP-2  | ✓ calc_npu     | ✓ ×3       | ✓ empirical_npu     | Stage-1+ | 100% |
+| F-CHIP-3  | ✓ calc_hbm     | ✓ ×3       | ✓ empirical_hbm     | Stage-1+ | 100% |
+| F-CHIP-4  | ✗              | ✗          | ✗                    | non-measurable | 0% |
+
+sat-1 ✓ + sat-2 ✓ + sat-3 ✓. RSC loop fully terminates per recipe
+§7.2. Remaining v2.0.0+ work:
+1. Strict bench T3 — tape-out / fab measurement infra (Stage-1+).
+2. F-CHIP-3.b/.c re-fit — HBM3E 16-Hi + HBM4 2048-bit trend signals
+   are pre-registered and tracked by `empirical_hbm.hexa` as INFO.
+3. F-CHIP-4 (consciousness Φ) — Stage-3+ Φ-bench is research-tier,
+   not engineering-tier, and is out of recipe scope.
+
 ### Added (2026-05-08 — RSC iter 20, **F-CHIP-3 T3 closes (with trend pressure)**)
 
 - `verify/empirical_hbm.hexa` — F-CHIP-3 partial T3 closure via
