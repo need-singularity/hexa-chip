@@ -5,6 +5,25 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 18, **F-CHIP-1 T3 begins**)
+
+- `verify/empirical_process.hexa` — F-CHIP-1 partial T3 closure via
+  vendored fixture of widely-published TSMC / Samsung / Intel
+  transistor densities (10 rows, 3 vendors, 5 generations spanned).
+  Cross-checks against the σ(6)=12 commercial-ladder + Moore's-law
+  per-gen log2(ratio) ∈ [0.5, 1.5] band:
+    - cardinality: max gen_index + 1 ≤ σ(6)=12
+    - per-vendor: log2(D_{n+1}/D_n) per gen in Moore band
+    - cross-vendor: shared-gen density within 2.5× envelope
+    - monotone density per vendor
+  Optional curl probe to wikichip.org behind `HEXA_CHIP_NETWORK=1`
+  (off by default — fixture is canonical at v1.x).
+  Sentinel: `__HEXA_CHIP_EMPIRICAL_PROCESS__ PASS`.
+- `verify/cli.hexa` — registered `empirical-process` target.
+  Aggregate: 21/21 → 22/22 PASS.
+- F-CHIP-1 closure progresses **67% → 100%** (T1 ✓ + T2 ✓ + T3 ✓
+  archival fixture). Strict bench SEM measurement remains Stage-1+.
+
 ### Added (2026-05-08 — RSC iter 17, **self-stop signal wired**)
 
 - `verify/saturation_check.hexa` — recipe §7.4 priority 15 canonical
