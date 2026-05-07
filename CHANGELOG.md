@@ -5,6 +5,19 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 8)
+
+- `verify/numerics_npu_parity.hexa` — **F-CHIP-2 T2 second-stack**.
+  6-vendor (= n) INT8 + FP16 throughput parity: Apple ANE A17 Pro,
+  NVIDIA Jetson Orin AGX, Qualcomm Hexagon 8G3, Google Tensor G3,
+  Samsung Exynos 2400, AMD Ryzen AI XDNA. 11 checks: per-row INT8/FP16
+  = φ(6) ±5%; vendor cardinality = n; geomean INT8 ∈ [σ, σ²]; log2
+  span ∈ [n, σ-φ]; Jetson Orin ∈ [σ², σ²·n] server-class; aggregate
+  ΣINT8/ΣFP16 = φ; cohort years = τ-1.
+  Sentinel: `__HEXA_CHIP_NUMERICS_NPU_PARITY__ PASS`.
+- Aggregate: 12/12 → 13/13 PASS.
+- F-CHIP-2: T1 ✓ + T2 ×2.
+
 ### Added (2026-05-08 — RSC iter 7)
 
 - `verify/numerics_process_parity.hexa` — **F-CHIP-1 T2 second-stack**.
