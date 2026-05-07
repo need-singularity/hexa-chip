@@ -1,0 +1,115 @@
+#!hexa strict
+// hexa-chip/verify/falsifier_check.hexa — F-CHIP-1..F-CHIP-4 register dump.
+//
+// Mirrors hexa-sscb/verify/falsifier_check.py: surfaces the 4 explicit
+// falsifier conditions registered in .roadmap.hexa_chip §A.4. Each
+// falsifier is bench-only (or measurement-only) so this script's job is
+// to confirm presence, not to evaluate (no measurement plumbing yet).
+//
+// The register is the SSOT for "what would prove the n=6 chip claim wrong"
+// — keeping it visible / runnable is the whole point.
+//
+// Cost: $0 (single file read).
+
+let FALSIFIERS = [
+    ["F-CHIP-1",
+     "process node 12-generation σ scaling (Moore's law n=6 fit)",
+     "Samsung/SK/TSMC public 2nm-3nm measurement vs σ(6)=12 ladder fit"],
+    ["F-CHIP-2",
+     "NPU n=6 dataflow τ=4 stage decomposition",
+     "Samsung Exynos / Apple Neural Engine pipeline-stage count comparison"],
+    ["F-CHIP-3",
+     "HBM stack height σ-φ=10 layer ceiling",
+     "HBM4 measured stack count vs σ(6)-φ(6)=10 prediction"],
+    ["F-CHIP-4",
+     "consciousness-chip n=6 invariant claim",
+     "Φ (IIT) measure / PCI / closed-form n=6 fit experimental data"]
+]
+
+fn _root() -> str {
+    let env_root = env("HEXA_CHIP_ROOT")
+    if env_root.len() > 0 { return env_root }
+    return exec("pwd").trim()
+}
+
+fn _has_flag(args: [str], flag: str) -> bool {
+    for x in args { if x == flag { return true } }
+    return false
+}
+
+fn _user_args() -> [str] {
+    let raw = args()
+    let mut sidx = -1
+    let mut i = 0
+    while i < raw.len() {
+        if raw[i].ends_with(".hexa") { sidx = i; break }
+        i = i + 1
+    }
+    let mut out: [str] = []
+    let mut j = sidx + 1
+    if sidx < 0 { j = 0 }
+    while j < raw.len() { out = out + [raw[j]]; j = j + 1 }
+    return out
+}
+
+fn main() {
+    let ua = _user_args()
+    let json_mode = _has_flag(ua, "--json")
+    let root = _root()
+    let p = root + "/.roadmap.hexa_chip"
+    let r = exec("[ -f \"" + p + "\" ] && echo y || echo n").trim()
+    let mut roadmap_present = false
+    if r == "y" { roadmap_present = true }
+
+    let mut found = 0
+    if roadmap_present {
+        let txt = read_file(p)
+        for f in FALSIFIERS {
+            if txt.contains(f[0]) { found = found + 1 }
+        }
+    }
+
+    let total = FALSIFIERS.len()
+    let all_present = (found == total) && roadmap_present
+
+    if json_mode {
+        let mut js = "{\"tool\":\"hexa-chip/verify/falsifier_check.hexa\","
+        js = js + "\"schema\":\"hexa-chip/falsifier/v1\","
+        js = js + "\"falsifiers_total\":" + str(total) + ","
+        js = js + "\"falsifiers_in_roadmap\":" + str(found) + ","
+        js = js + "\"roadmap_present\":"
+        if roadmap_present { js = js + "true" } else { js = js + "false" }
+        js = js + ",\"ok\":"
+        if all_present { js = js + "true" } else { js = js + "false" }
+        js = js + "}"
+        println(js)
+        if all_present { return }
+        exit(1)
+    }
+
+    println("========================================================================")
+    println("  hexa-chip — falsifier preregister (.roadmap §A.4)")
+    println("========================================================================")
+    if !roadmap_present {
+        println("  FAIL — .roadmap.hexa_chip not found at " + p)
+        exit(1)
+    }
+    let mut idx = 1
+    let txt = read_file(p)
+    while idx <= FALSIFIERS.len() {
+        let f = FALSIFIERS[idx - 1]
+        let in_doc = txt.contains(f[0])
+        let mark = if in_doc { "[in roadmap]" } else { "[MISSING]   " }
+        println("  " + f[0] + " " + mark)
+        println("    claim:    " + f[1])
+        println("    bench:    " + f[2])
+        idx = idx + 1
+    }
+    println("========================================================================")
+    println("  " + str(found) + "/" + str(total) + " falsifiers present in .roadmap")
+    if all_present {
+        println("  PASS — falsifier register intact (each is bench-only; no auto eval)")
+        return
+    }
+    exit(1)
+}
