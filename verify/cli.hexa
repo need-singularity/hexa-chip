@@ -34,7 +34,8 @@ let CHECKS = [
     ["calc-hbm",         "calc_hbm.hexa",          "F-CHIP-3 T1 — HBM σ-φ=10 ceiling + σ+τ=16 frontier"],
     ["numerics-process", "numerics_process.hexa",  "F-CHIP-1 T2 — process node geometric-ladder float re-derive"],
     ["numerics-npu",     "numerics_npu.hexa",      "F-CHIP-2 T2 — NPU roofline + 4-stage pipeline + commercial parity"],
-    ["numerics-hbm",     "numerics_hbm.hexa",      "F-CHIP-3 T2 — HBM 5-gen bandwidth/capacity + vendor parity"]
+    ["numerics-hbm",     "numerics_hbm.hexa",      "F-CHIP-3 T2 — HBM 5-gen bandwidth/capacity + vendor parity"],
+    ["numerics-process-parity", "numerics_process_parity.hexa", "F-CHIP-1 T2-2 — TSMC/Samsung/Intel density vs K/f²"]
 ]
 
 fn _root() -> str {

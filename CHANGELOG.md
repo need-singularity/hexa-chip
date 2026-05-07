@@ -5,6 +5,18 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 7)
+
+- `verify/numerics_process_parity.hexa` — **F-CHIP-1 T2 second-stack**.
+  10-row vendor density parity: TSMC (14/10/7/5/3nm) + Samsung (7/5/3nm)
+  + Intel ('10'/'7') public MTr/mm² figures vs predicted K/f² (K=4325
+  calibrated from TSMC 5nm = 173). 12 checks: intra-TSMC ±60%, cross-
+  foundry ±200%, (14/3)²/(313/29) ≈ φ cell-overhead, log2 density span
+  ∈ [τ-1, τ+1], geomean ∈ σ²-class window, vendor rows = σ-φ = 10.
+  Sentinel: `__HEXA_CHIP_NUMERICS_PROCESS_PARITY__ PASS`.
+- Aggregate: 11/11 → 12/12 PASS.
+- F-CHIP-1: T1 ✓ + T2 ×2 (need ×3 for sat-1).
+
 ### Added (2026-05-07 — RSC iter 6)
 
 - `verify/numerics_hbm.hexa` — **F-CHIP-3 T2 first-stack** numerical
