@@ -5,6 +5,19 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-07 — RSC iter 6)
+
+- `verify/numerics_hbm.hexa` — **F-CHIP-3 T2 first-stack** numerical
+  re-derivation. 11 float-arithmetic checks via `math_pure`: predicted
+  per-stack BW = bus·rate/8 matches HBM2/2E/3/3E/4 vendor specs within
+  ±15% (256 / 410 / 819 / 1229 / 2048 GB/s); HBM4 / HBM2 = 8× = 2³ BW
+  doubling, 4× = τ capacity; Hi span (16-4) = σ; geomean BW = 736 ∈
+  [5σ², 10σ²]; HBM3 BW / σ² = 5.69 commercial-class anchor.
+  Sentinel: `__HEXA_CHIP_NUMERICS_HBM__ PASS`.
+- Aggregate: 10/10 → 11/11 PASS.
+- F-CHIP-3: T1 ✓ + T2 ×1 (need ×3 for sat-1).
+- All 3 measurable falsifiers now have T1 ✓ + T2 ×1 each.
+
 ### Added (2026-05-07 — RSC iter 5)
 
 - `verify/numerics_npu.hexa` — **F-CHIP-2 T2 first-stack** numerical
