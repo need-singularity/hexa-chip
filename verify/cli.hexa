@@ -46,6 +46,7 @@ let CHECKS = [
     ["numerics-lattice-arithmetic", "numerics_lattice_arithmetic.hexa", "math_pure floor — int↔float σ/τ/φ + round-trip"],
     ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"],
     ["empirical-process",        "empirical_process.hexa",            "F-CHIP-1 T3 — TSMC/Samsung/Intel density vendored fixture"],
+    ["empirical-npu",            "empirical_npu.hexa",                "F-CHIP-2 T3 — NPU dataflow stage-count vendored fixture"],
     ["saturation",               "saturation_check.hexa",             "RSC self-stop signal — sat-1 + sat-2 (recipe §7.4 #15)"]
 ]
 

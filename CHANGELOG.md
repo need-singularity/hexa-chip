@@ -5,6 +5,25 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 19, **F-CHIP-2 T3 closes**)
+
+- `verify/empirical_npu.hexa` — F-CHIP-2 partial T3 closure via
+  vendored fixture of 8 publicly-cited NPU/dataflow architectures
+  (Eyeriss-v1/v2, TPUv1, Volta Tensor Core, Apple ANE, Exynos NPU,
+  Cerebras WSE-2, Graphcore IPU). Cross-checks against τ(6)=4:
+    - hard band: every stage_count ∈ [τ-φ, τ+φ] = [2, 6]
+    - mode of stage_count == τ(6) = 4
+    - mean within 0.5 of τ (band [3.5, 4.5])
+    - ≥ 4 distinct sources, no duplicate architectures
+  Optional curl probe to ieeexplore.ieee.org behind
+  `HEXA_CHIP_NETWORK=1` (off by default — fixture canonical at v1.x).
+  Sentinel: `__HEXA_CHIP_EMPIRICAL_NPU__ PASS`.
+- `verify/cli.hexa` — registered `empirical-npu` target.
+  Aggregate: 22/22 → 23/23 PASS.
+- F-CHIP-2 closure progresses **67% → 100%** (T1 ✓ + T2 ✓ + T3 ✓
+  archival fixture). Strict bench silicon-timing measurement remains
+  Stage-1+.
+
 ### Added (2026-05-08 — RSC iter 18, **F-CHIP-1 T3 begins**)
 
 - `verify/empirical_process.hexa` — F-CHIP-1 partial T3 closure via
