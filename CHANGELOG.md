@@ -5,6 +5,23 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 15)
+
+- `verify/lint_numerics.hexa` — **meta-tier lint enforcer** (recipe §4 +
+  §7.4 priority 10). Grep-checks every `verify/numerics_*.hexa` for the
+  5 mandated invariants:
+    1. `use "self/runtime/math_pure"` import (cross_pillar excepted)
+    2. `__HEXA_CHIP_<NAME>__` sentinel + `__ PASS` line
+    3. `let FALSIFIERS` array declared
+    4. `exit(0)` on PASS path
+    5. `let mut RUN = 0` + `let mut FAIL = 0` counters
+  Plus inventory invariant: `NUMERICS_SCRIPTS` array length == on-disk
+  glob count. 9 checks; all 11 numerics scripts pass every invariant.
+  Sentinel: `__HEXA_CHIP_LINT_NUMERICS__ PASS`.
+- Aggregate: 19/19 → 20/20 PASS.
+- Recipe §7.4 priority 10 complete; sat-2 recipe-exhaustion progress:
+  16/16 inventory slots either filled or covered by stand-ins.
+
 ### Added (2026-05-08 — RSC iter 14)
 
 - `verify/numerics_lattice_arithmetic.hexa` — **math_pure stability floor**
