@@ -13,6 +13,7 @@
 //   hexa run verify/cli.hexa cross-doc      # cross-doc invariant audit
 //   hexa run verify/cli.hexa release        # release cadence + falsifiers
 //   hexa run verify/cli.hexa falsifiers     # F-CHIP-1..4 register dump
+//   hexa run verify/cli.hexa saturation     # RSC self-stop signal (sat-1 + sat-2)
 //   hexa run verify/cli.hexa --list         # list registered checks
 //   hexa run verify/cli.hexa --json         # machine-readable summary
 //
@@ -43,7 +44,8 @@ let CHECKS = [
     ["numerics-hbm-solver",     "numerics_hbm_solver.hexa",     "F-CHIP-3 T2-3 — Jacobi 1-D Laplace on σ-φ=10 stack"],
     ["numerics-cross-pillar",   "numerics_cross_pillar.hexa",   "cross-cutter T2 — process/NPU/HBM σ/τ/φ/J₂ agreement"],
     ["numerics-lattice-arithmetic", "numerics_lattice_arithmetic.hexa", "math_pure floor — int↔float σ/τ/φ + round-trip"],
-    ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"]
+    ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"],
+    ["saturation",               "saturation_check.hexa",             "RSC self-stop signal — sat-1 + sat-2 (recipe §7.4 #15)"]
 ]
 
 fn _root() -> str {

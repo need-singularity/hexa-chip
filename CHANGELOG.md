@@ -5,6 +5,31 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 17, **self-stop signal wired**)
+
+- `verify/saturation_check.hexa` — recipe §7.4 priority 15 canonical
+  self-stop signal. Promotes the iter-16 informational verdict (in
+  `falsifier_check.hexa`) to a first-class verify-tier script that the
+  loop runner / CI can grep for. Two conditions:
+    - sat-1: F-CHIP-1/2/3 (measurable falsifiers) each have T2 stack
+      ≥ 3 with every script on disk. F-CHIP-4 (consciousness Φ)
+      excluded as non-measurable v1.x.
+    - sat-2: numerics_*.hexa inventory ≥ 9 AND nested invocation of
+      `lint_numerics.hexa` returns 0.
+  Plus 8 backbone-presence regression checks (calc_*, falsifier_check,
+  lint_numerics, numerics_cross_pillar, numerics_lattice_arithmetic).
+  Sentinels: `__HEXA_CHIP_RSC_SATURATED__ STOP` on PASS;
+  `__HEXA_CHIP_RSC_SATURATED__ NOT_YET — N condition(s) missing` on
+  regression. Exit 0 = saturated, 1 = continue. NOT a numerics_*.hexa
+  (lint_numerics excluded by glob).
+- `verify/cli.hexa` — registered `saturation` target pointing at the
+  new script; usage docstring + dispatcher table updated. Aggregate:
+  20/20 → 21/21 PASS.
+- Recipe §7.4 priority 15 now ticked. RSC loop has a code-level
+  termination test, not just a CHANGELOG note. Next-tier work
+  (T3 empirical via tape-out / fab measurement) is Stage-1+ scope and
+  requires hardware — no further v1.x verify chunks remain in scope.
+
 ### Changed (2026-05-08 — RSC iter 16, **sat-1 + sat-2 reached**)
 
 - `verify/falsifier_check.hexa` — refreshed from a roadmap-presence
