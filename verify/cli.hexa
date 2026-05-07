@@ -47,6 +47,7 @@ let CHECKS = [
     ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"],
     ["empirical-process",        "empirical_process.hexa",            "F-CHIP-1 T3 — TSMC/Samsung/Intel density vendored fixture"],
     ["empirical-npu",            "empirical_npu.hexa",                "F-CHIP-2 T3 — NPU dataflow stage-count vendored fixture"],
+    ["empirical-hbm",            "empirical_hbm.hexa",                "F-CHIP-3 T3 — JEDEC HBM2/2E/3/3E stack+bus vendored fixture"],
     ["saturation",               "saturation_check.hexa",             "RSC self-stop signal — sat-1 + sat-2 (recipe §7.4 #15)"]
 ]
 

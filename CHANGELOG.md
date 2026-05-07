@@ -5,6 +5,30 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — RSC iter 20, **F-CHIP-3 T3 closes (with trend pressure)**)
+
+- `verify/empirical_hbm.hexa` — F-CHIP-3 partial T3 closure via
+  vendored fixture of 6 JEDEC-spec'd commercial HBM products
+  (HBM2 4-Hi/8-Hi, HBM2E 8-Hi, HBM3 8-Hi/12-Hi, HBM3E 12-Hi).
+  Cross-checks against σ(6)=12 hard ceiling + σ-φ=10 comfortable
+  ceiling + 2^(σ-φ)=1024-bit bus:
+    - hard: every commercial entry stack ≤ σ=12 + bus = 1024
+    - majority: ≥ 4 entries within σ-φ=10 comfortable ceiling
+    - diversity: ≥ 3 generations + ≥ 3 sources, monotone within gen
+  Sentinel: `__HEXA_CHIP_EMPIRICAL_HBM__ PASS`.
+- HBM3E 16-Hi (Samsung 36GB sampling 2024) + HBM4 2048-bit (JEDEC
+  working draft 2024) are explicitly tracked as **TRENDS** —
+  informational only, NOT gating. They pressure F-CHIP-3 toward
+  retraction and are pre-registered as v2.0.0 re-fit triggers per
+  .roadmap §A.4 F-CHIP-3.b/.c. Honest empirical signal:
+    - 16-Hi exceeds σ=12 hard ceiling (1.33×)
+    - HBM4 2048-bit doubles 2^(σ-φ)=1024 anchor (= 2^11)
+- `verify/cli.hexa` — registered `empirical-hbm` target.
+  Aggregate: 23/23 → 24/24 PASS.
+- F-CHIP-3 closure progresses **67% → 100%** (T1 ✓ + T2 ✓ + T3 ✓
+  archival fixture). Strict bench HBM thermal/timing measurement
+  remains Stage-1+. v2.0.0 re-fit queued for the trend.
+
 ### Added (2026-05-08 — RSC iter 19, **F-CHIP-2 T3 closes**)
 
 - `verify/empirical_npu.hexa` — F-CHIP-2 partial T3 closure via
