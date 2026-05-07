@@ -5,6 +5,18 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-07 — RSC iter 4)
+
+- `verify/numerics_process.hexa` — **F-CHIP-1 T2 first-stack** numerical
+  re-derivation. 10 float-arithmetic checks via `self/runtime/math_pure`
+  (sqrt_pure / pow_pure / log_pure / log2_pure): predicted geometric
+  ladder f_k = 180·(3/180)^((k-1)/11) matches commercial 180nm→3nm
+  within industry slack; per-step inverse ratio 60^(1/11)=1.4509 within
+  3% of √2; log2(180/3)=5.907 ≈ n=6 doublings; density scaling=3600×
+  (σ-ladder shrink)². Sentinel: `__HEXA_CHIP_NUMERICS_PROCESS__ PASS`.
+- Aggregate: 8/8 → 9/9 PASS.
+- F-CHIP-1 closure: 33% → 33% (T1 ✓ + T2 stack ×1; needs ×3 for sat-1).
+
 ### Added (2026-05-07 — RSC iter 3)
 
 - `verify/calc_hbm.hexa` — **F-CHIP-3 T1** algebraic derivation.
