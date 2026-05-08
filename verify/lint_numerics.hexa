@@ -37,7 +37,8 @@ let NUMERICS_SCRIPTS = [
     "numerics_hbm_solver.hexa",
     "numerics_cross_pillar.hexa",
     "numerics_lattice_arithmetic.hexa",
-    "numerics_spice_corner.hexa"
+    "numerics_spice_corner.hexa",
+    "numerics_rtl_isa_n6.hexa"
 ]
 
 // ─── arg / env helpers ───────────────────────────────────────────────
@@ -219,7 +220,7 @@ fn check_naming_convention(root: str) {
     // Every numerics_*.hexa should match the naming pattern
     // numerics_<pillar>[_parity|_solver].hexa OR
     // numerics_cross_pillar.hexa OR numerics_lattice_arithmetic.hexa.
-    let allowed_pillars = ["process", "npu", "hbm", "cross_pillar", "lattice_arithmetic", "spice_corner"]
+    let allowed_pillars = ["process", "npu", "hbm", "cross_pillar", "lattice_arithmetic", "spice_corner", "rtl_isa_n6"]
     let allowed_suffixes = ["", "_parity", "_solver"]
     let mut bad: [str] = []
     for s in NUMERICS_SCRIPTS {
