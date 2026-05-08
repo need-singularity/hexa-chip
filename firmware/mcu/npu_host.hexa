@@ -8,17 +8,21 @@
 // streaming, with a layer-descriptor cache resident in the H7's SRAM.
 //
 // Falsifier: F-CHIP-2.D (host-side NPU dispatch loop)
+//          + F-CHIP-5  (Phase F iter 5: GPGPU verb consumer)
 // Board ID:  HEXA-CHIP-FW-02
 // Phase:     D iter 4 — first .hexa MCU consumer of stdlib/hal v0.0.1.
+//          + Phase F iter 5 — first hexa-native consumer of stdlib/hal/compute
+//            (GPGPU programming-model verb).
 //
 // stdlib/hal modules used:
-//   core   — sentinel + exit + str runtime
-//   dma    — peripheral → memory descriptor streaming (J₂=24 ch baseline)
-//   gpio   — npu_busy strobe pin (visible on board LED)
-//   intr   — layer_done IRQ on WB drain (real-time priority)
-//   spi    — AXI4-Lite control bridge to FPGA NPU @ 50 MHz
-//   timer  — 100 µs cycle accountant for IPS roofline check
-//   uart   — debug log @ 115200 baud
+//   core    — sentinel + exit + str runtime
+//   compute — GPGPU programming-model dispatch (Phase F iter 5)
+//   dma     — peripheral → memory descriptor streaming (J₂=24 ch baseline)
+//   gpio    — npu_busy strobe pin (visible on board LED)
+//   intr    — layer_done IRQ on WB drain (real-time priority)
+//   spi     — AXI4-Lite control bridge to FPGA NPU @ 50 MHz
+//   timer   — 100 µs cycle accountant for IPS roofline check
+//   uart    — debug log @ 115200 baud
 //
 // Logic mirrors firmware/sim/npu_dispatcher.hexa but as the host-side
 // controller: dispatch one 24-instruction layer (= J₂) over SPI, wait
@@ -26,6 +30,7 @@
 // macroblocks = n=6, pipeline overhead = 2·(τ-1) = 6.
 
 use "stdlib/hal/core"
+use "stdlib/hal/compute"   // Phase F iter 5: GPGPU verb consumer
 use "stdlib/hal/dma"
 use "stdlib/hal/gpio"
 use "stdlib/hal/intr"
@@ -160,6 +165,61 @@ fn check_uart_debug(uart_h: int) {
            "h=" + str(uart_h))
 }
 
+// ── Phase F iter 5: GPGPU verb consumer ───────────────────────────────
+//
+// NPU layer dispatch via stdlib/hal/compute (= GPGPU programming-model
+// projection). The 24-instruction layer descriptor maps onto the
+// 6 invariant axes:
+//
+//   axis 1 grid       : (1, 1, 1)         — one layer per dispatch
+//   axis 2 workgroup  : (24, 1, 1)        — 24 instr = J₂ co-scheduled
+//   axis 3 mem-tier   : DEVICE buffers (descriptor + weight + activation)
+//   axis 4 barrier    : SCOPE_WORKGROUP   — full layer barrier
+//   axis 5 launch-dep : -1                — independent layer
+//   axis 6 sub-group  : 0                 — vendor-default (NPU lane)
+//
+// IR substrate: SPIR-V (synthetic — the NPU consumes its own ISA n=6,
+// not real SPIR-V; kernel_bytes_len here is purely the descriptor size).
+fn dispatch_layer_via_compute() -> int {
+    let desc_bytes = J2 * 4   // 24 words × 4 bytes
+    let buf_desc = compute_buffer_alloc(2, desc_bytes)   // TIER_DEVICE
+    if buf_desc < 0 { return -1 }
+    let buf_w = compute_buffer_alloc(2, 4096)            // weight (placeholder)
+    let buf_a = compute_buffer_alloc(2, 1024)            // activation (placeholder)
+    if buf_w < 0 || buf_a < 0 { return -2 }
+    let kern = compute_kernel_compile(0, desc_bytes)     // IR_SPIRV
+    if kern < 0 { return -3 }
+    // SCOPE_WORKGROUP = 1
+    let ev = compute_dispatch(2, kern, 1, 1, 1, J2, 1, 1, 1, -1, 0)   // VENDOR_SYCL=2 as proxy SPIR-V path
+    if ev < 0 { return -4 }
+    let _waited = compute_event_wait(ev)
+    compute_event_release(ev)
+    compute_kernel_release(kern)
+    compute_buffer_free(buf_desc)
+    compute_buffer_free(buf_w)
+    compute_buffer_free(buf_a)
+    return ev
+}
+
+fn check_compute_dispatch_path() {
+    let ev = dispatch_layer_via_compute()
+    _check(ev >= 0,
+           "GPGPU verb consumer: dispatch_layer_via_compute returned event handle",
+           "ev=" + str(ev))
+    let n_axes   = compute_invariant_axes()
+    let n_tiers  = compute_invariant_tiers()
+    let j2_prime = compute_invariant_J2_prime()
+    _check(n_axes == 6,
+           "compute module reports n=6 invariant axes (NPU consumer)",
+           "got " + str(n_axes))
+    _check(n_tiers == 4,
+           "compute module reports τ=4 memory tiers (NPU consumer)",
+           "got " + str(n_tiers))
+    _check(j2_prime == 48,
+           "compute module reports J₂′=48 lattice (NPU consumer)",
+           "got " + str(j2_prime))
+}
+
 let FALSIFIERS = [
     "F-CHIP-2.D.a: SPI AXI4-Lite bridge stalls → host cannot push descriptor to FPGA NPU",
     "F-CHIP-2.D.b: macroblock count != n=6 → ISA class axis broken on host classifier",
@@ -202,6 +262,7 @@ fn main() {
     check_back_pressure_envelope()
     check_layer_done_irq_armed(intr_h)
     check_uart_debug(uart_h)
+    check_compute_dispatch_path()   // Phase F iter 5: GPGPU verb consumer
 
     let pass_n = RUN - FAIL
 
