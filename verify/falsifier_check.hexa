@@ -72,7 +72,7 @@ let F3_T1 = "calc_hbm.hexa"
 let F4_T1 = ""    // consciousness-chip T1 not yet derived
 
 // T2 stacks (arrays).
-let F1_T2 = ["numerics_process.hexa", "numerics_process_parity.hexa", "numerics_process_solver.hexa"]
+let F1_T2 = ["numerics_process.hexa", "numerics_process_parity.hexa", "numerics_process_solver.hexa", "numerics_spice_corner.hexa"]
 let F2_T2 = ["numerics_npu.hexa", "numerics_npu_parity.hexa", "numerics_npu_solver.hexa"]
 let F3_T2 = ["numerics_hbm.hexa", "numerics_hbm_parity.hexa", "numerics_hbm_solver.hexa"]
 let F4_T2: [str] = []   // consciousness T2 not yet derived

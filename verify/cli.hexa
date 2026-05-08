@@ -44,6 +44,7 @@ let CHECKS = [
     ["numerics-hbm-solver",     "numerics_hbm_solver.hexa",     "F-CHIP-3 T2-3 — Jacobi 1-D Laplace on σ-φ=10 stack"],
     ["numerics-cross-pillar",   "numerics_cross_pillar.hexa",   "cross-cutter T2 — process/NPU/HBM σ/τ/φ/J₂ agreement"],
     ["numerics-lattice-arithmetic", "numerics_lattice_arithmetic.hexa", "math_pure floor — int↔float σ/τ/φ + round-trip"],
+    ["numerics-spice-corner",    "numerics_spice_corner.hexa",        "F-CHIP-1 T2-4 — Samsung SF3/SF2/SF2P/SF1.4 PVT corner sweep (Phase B)"],
     ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"],
     ["empirical-process",        "empirical_process.hexa",            "F-CHIP-1 T3 — TSMC/Samsung/Intel density vendored fixture"],
     ["empirical-npu",            "empirical_npu.hexa",                "F-CHIP-2 T3 — NPU dataflow stage-count vendored fixture"],
