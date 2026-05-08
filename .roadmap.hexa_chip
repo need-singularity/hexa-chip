@@ -215,3 +215,104 @@ peripheral 은 prelude 외에 두고 vendor backend 모듈로 분리.)
 
 본 §A.6.2 는 design intent 기록. 실제 hexa-embedded 패키지 구현은 본 repo
 밖 (`/Users/ghost/core/hexa-embedded/` 신규 디렉토리) 에서 별도 진행.
+
+---
+
+## §F  GPGPU programming-model axis (vendor-agnostic, n=6 projection)
+
+> **Phase F**: 기존 7 그룹 (architecture / design / process / packaging /
+> accelerator / consciousness + meta) 에 **programming-model 축** 신설. CUDA
+> 같은 단일 vendor lock-in 대신 **6-vendor projection layer** (CUDA / HIP /
+> SYCL / OpenCL / Metal / WebGPU) 를 n=6 lattice 에 매핑. 기반 SSOT 는
+> `~/core/canon/domains/compute/gpgpu/gpgpu.md` (canon, 2026-05-08 신규).
+>
+> autonomy_directive (vendor-agnostic 명령) + canon_pointer (canon = SSOT,
+> hexa-chip = 6-month snapshot) 메모리 명령에 정합.
+
+### §F.1 Verb 등록
+
+신규 verb 디렉토리 (accelerator 그룹 확장):
+
+```
+hexa-chip/
+└── gpgpu_n6/
+    ├── chip-gpgpu-n6.md            ← vision spec (canon snapshot)
+    ├── doc/
+    │   └── datasheet_gpgpu_n6.md   ← projection-layer spec sheet
+    └── verify_chip-gpgpu-n6.hexa   ← falsifier F-CHIP-5/5a/5b/5c
+```
+
+`accel/` 그룹 자식 verb: `npu_n6` · `pim` · `photonic` · **`gpgpu_n6` (신규)**.
+
+### §F.2 n=6 projection (J₂′ = 48 extension)
+
+| Symbol | Value | GPGPU 의미 |
+|:------:|:-----:|:-----------|
+| σ(6)   | 12    | 6 vendors × 2 IR substrates (SPIR-V, PTX) |
+| τ(6)   | 4     | 4 lifecycle stages (compile / enqueue / dispatch / retire) |
+| φ(6)   | 2     | digital (compute pipeline) ‖ analog (graphics interop) |
+| J₂     | 24    | 6 vendor × 4 stage — parent hexa-chip 호환 |
+| J₂′    | 48    | 6 vendor × 4 stage × 2 mode — GPGPU 확장 |
+
+6 invariant axes (수업의 contract surface):
+1. grid shape · 2. workgroup size · 3. memory tier · 4. barrier scope ·
+5. launch dependency · 6. sub-group width.
+
+### §F.3 6 모델 spec table (web-search 2026-05-08)
+
+| # | 모델 | Vendor | Latest | Date | IR |
+|---|------|--------|--------|------|-----|
+| 1 | CUDA   | NVIDIA | 13.2          | 2026-03-04 | PTX→SASS |
+| 2 | HIP/ROCm | AMD  | 7.2.53211     | 2026       | LLVM→AMDGCN |
+| 3 | SYCL   | Khronos | 2020 rev 11  | 2025-11-07 | SPIR-V |
+| 4 | OpenCL | Khronos | 3.1.0        | 2026-05-05 | SPIR-V |
+| 5 | Metal  | Apple   | 4 / MSL 4    | 2025-10-23 | AIR |
+| 6 | WebGPU | W3C     | CR Draft (v2 dev) | 2026  | WGSL→{SPIR-V,MSL,HLSL} |
+
+### §F.4 Falsifier 추가 (F-CHIP-5 family)
+
+§A.4 falsifier preregister 에 추가:
+
+- **F-CHIP-5**  — GPGPU 6-vendor concept rosetta 완전성 (canon §2.2).
+- **F-CHIP-5a** — memory-tier τ=4 minimality (5th tier 필요한 kernel 존재?).
+- **F-CHIP-5b** — IR substrate φ=2 sufficiency (SPIR-V ‖ PTX 외 lower 필요?).
+- **F-CHIP-5c** — 6 invariant axes sufficiency (7th axis 필요한 launch?).
+
+### §F.5 Iter cadence (A → E mirror)
+
+기존 Phase A→E 패턴 그대로 적용:
+
+| Iter | 범위 | 결과물 | 외부 dep |
+|:----:|:----|:------|:--------|
+| F iter 1 | **종이 설계** — canon SSOT + hexa-chip 스냅샷 + verify stub + datasheet | this commit (canon `compute/gpgpu/gpgpu.md` + `gpgpu_n6/` 3 파일) | ✗ |
+| F iter 2 | **stdlib/hal `compute::parallel`** — host-side dispatch primitive (KernelDescriptor + buffer alloc + queue + event) | hexa-lang repo 의 stdlib/hal v0.3.0 신규 모듈 | hexa-lang 작업 |
+| F iter 3 | **6-vendor projection layer** — KernelDescriptor → vendor-specific launch (CUDA/HIP/SYCL/OpenCL/Metal/WebGPU 6 backend stub) | `gpgpu_n6/projection/{cuda,hip,sycl,opencl,metal,webgpu}.hexa` × 6 | per-vendor SDK |
+| F iter 4 | **F-CHIP-5 verify** — vector-add round-trip (canon §5.1 6-spelling) projection 정합성 검증 | `verify/numerics_gpgpu_projection.hexa` | minimal SPIR-V toolchain |
+| F iter 5 | **stdlib/hal compute 통합** — Phase D 의 `firmware/mcu/npu_dispatcher.hexa` 가 `hal::compute::parallel` 위로 리팩터 (NPU 가 GPGPU verb 의 첫 consumer) | `firmware/mcu/npu_dispatcher.hexa` 리팩터 + `hal::compute::parallel` import | F iter 2 + iter 3 완료 |
+
+**RSC 가능성**: iter 1 (종이) + iter 4 (verify .hexa) 는 RSC 안. iter 2 / 3 / 5 는 hexa-lang stdlib/hal 작업 → 본 repo 밖 (hexa-lang 별도 진행).
+
+### §F.6 Pending decisions (§A.5 추가)
+
+- **Vulkan Compute** 7번째 first-class ecosystem 으로 승격? 현재 SSOT 결정: SPIR-V deployment profile (= 6 vendor 안에 흡수). 재고 트리거: Vulkan-native SoC ship 시점.
+- **Tensor cores / matrix engines** 7번째 axis (5th memory tier + 신규 barrier) vs axis 6 (sub-group) 확장? 현재 결정: 후자. 재고 트리거: Metal 4 + CUDA 13 production telemetry stabilises (~2026-Q4).
+- **Mojo / Triton / Pallas / OpenAI Triton-lang** 등 higher-level kernel DSL — 본 verb 안에 포함? 결정: peer (`compiler-os` 축 또는 미래 `kernel-dsl` verb).
+- **hexa-native GPGPU runtime** — stdlib/hal `compute::parallel` 가 host-side primitive (dispatch / buffer / queue / sync) 만 hexa-native, kernel body 는 vendor IR (SPIR-V ‖ PTX) 그대로. WGSL-style 의 hexa-DSL 까지 갈지는 v1.x 미정.
+
+### §F.7 Cross-link
+
+- **canon SSOT**: `~/core/canon/domains/compute/gpgpu/gpgpu.md` (vendor-agnostic, web-search 2026-05-08, §1–§8).
+- **hexa-chip 스냅샷**: `gpgpu_n6/{chip-gpgpu-n6.md, doc/datasheet_gpgpu_n6.md, verify_chip-gpgpu-n6.hexa}`.
+- **stdlib/hal 후크 (hexa-lang repo)**: `hal::compute::parallel` (planned v0.3.0). hexa-chip 외부 작업.
+- **F-CHIP-5 falsifier ledger**: 본 §F.4 + §A.4.
+- **Phase D consumer**: `firmware/mcu/npu_dispatcher.hexa` 가 F iter 5 에서 `hal::compute::parallel` 위로 리팩터 → NPU 가 GPGPU verb 의 첫 hexa-native consumer.
+
+### §F.8 진행 현황
+
+| Phase | 시점 | 결과물 | commit |
+|:----:|:----|:------|:-------|
+| F iter 1 | 2026-05-08 | `~/core/canon/domains/compute/gpgpu/gpgpu.md` (canon SSOT, web-search 6 model spec) + `gpgpu_n6/{chip-gpgpu-n6.md, doc/datasheet_gpgpu_n6.md, verify_chip-gpgpu-n6.hexa}` (hexa-chip 스냅샷) + `.roadmap.hexa_chip §F` | this commit |
+| F iter 2 | TBD | hexa-lang stdlib/hal `compute::parallel` host-side primitive | hexa-lang repo |
+| F iter 3 | TBD | 6-vendor projection layer (CUDA/HIP/SYCL/OpenCL/Metal/WebGPU stub) | hexa-chip `gpgpu_n6/projection/` |
+| F iter 4 | TBD | `verify/numerics_gpgpu_projection.hexa` (F-CHIP-5 round-trip) | hexa-chip verify/ |
+| F iter 5 | TBD | `firmware/mcu/npu_dispatcher.hexa` 리팩터 (hal::compute::parallel 첫 consumer) | hexa-chip firmware/mcu/ |
