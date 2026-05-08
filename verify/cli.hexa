@@ -46,6 +46,7 @@ let CHECKS = [
     ["numerics-lattice-arithmetic", "numerics_lattice_arithmetic.hexa", "math_pure floor — int↔float σ/τ/φ + round-trip"],
     ["numerics-spice-corner",    "numerics_spice_corner.hexa",        "F-CHIP-1 T2-4 — Samsung SF3/SF2/SF2P/SF1.4 PVT corner sweep (Phase B)"],
     ["numerics-rtl-isa-n6",      "numerics_rtl_isa_n6.hexa",          "F-CHIP-2 T2-4 — ISA n=6 24-instr RTL cycle parity (Samsung SF2P, Phase B)"],
+    ["numerics-power-thermal",   "numerics_power_thermal.hexa",       "F-CHIP-3 T2-4 — SK Hynix HBM4 16-Hi 48GB 2TB/s power-thermal (Phase B)"],
     ["lint-numerics",            "lint_numerics.hexa",                "meta lint — recipe §4 5-invariant enforcer on numerics_*.hexa"],
     ["empirical-process",        "empirical_process.hexa",            "F-CHIP-1 T3 — TSMC/Samsung/Intel density vendored fixture"],
     ["empirical-npu",            "empirical_npu.hexa",                "F-CHIP-2 T3 — NPU dataflow stage-count vendored fixture"],
