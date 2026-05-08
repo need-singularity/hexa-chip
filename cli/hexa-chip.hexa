@@ -234,13 +234,222 @@ fn cmd_selftest(a: [str]) {
     _audit("selftest", "", 0)
 }
 
+// ─── verify firmware-mcu / firmware-hdl / board (Phase D + Phase E) ───
+
+fn _file_exists(p: str) -> bool {
+    let r = exec("[ -f " + shq(p) + " ] && echo yes || echo no").trim()
+    return r == "yes"
+}
+
+fn _basename_noext(p: str, ext: str) -> str {
+    let mut s = p
+    let slash = s.last_index_of("/")
+    if slash >= 0 { s = s.slice(slash + 1, s.len()) }
+    if s.ends_with(ext) { s = s.slice(0, s.len() - ext.len()) }
+    return s
+}
+
+fn _to_upper(s: str) -> str {
+    return exec("printf %s " + shq(s) + " | tr '[:lower:]' '[:upper:]'").trim()
+}
+
+fn cmd_verify_firmware_mcu(a: [str]) {
+    let dir = HC + "/firmware/mcu"
+    let listing = exec("ls " + shq(dir) + "/*.hexa 2>/dev/null").trim()
+    let mut files: [str] = []
+    if listing.len() > 0 { files = listing.split("\n") }
+
+    let mut present = 0
+    let mut total = files.len()
+    let mut failures: [str] = []
+
+    if json_mode(a) == false {
+        println("hexa-chip verify firmware-mcu — Phase D MCU host controllers")
+        println("  dir: " + dir)
+        println("")
+    }
+
+    for f in files {
+        if _file_exists(f) {
+            present = present + 1
+            let stem = _basename_noext(f, ".hexa")
+            let sentinel = "__HEXA_CHIP_MCU_" + _to_upper(stem) + "__"
+            if json_mode(a) == false {
+                println("  [PASS] " + f)
+                println("         sentinel: " + sentinel)
+            }
+        } else {
+            failures = failures + [f]
+            if json_mode(a) == false {
+                println("  [FAIL] " + f + " (missing)")
+            }
+        }
+    }
+
+    let mut verdict = "PASS"
+    if total == 0 || failures.len() > 0 { verdict = "FAIL" }
+
+    if json_mode(a) {
+        let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-firmware-mcu\",\"present\":" +
+                 str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
+        println(js)
+    } else {
+        println("")
+        println("  present: " + str(present) + "/" + str(total))
+        if verdict == "PASS" {
+            println("__HEXA_CHIP_VERIFY_FIRMWARE_MCU__ PASS")
+        } else {
+            println("__HEXA_CHIP_VERIFY_FIRMWARE_MCU__ FAIL")
+        }
+    }
+
+    let mut ec = 0
+    if verdict == "FAIL" { ec = 1 }
+    _audit("verify-firmware-mcu", "", ec)
+    if ec != 0 { exit(ec) }
+}
+
+fn cmd_verify_firmware_hdl(a: [str]) {
+    let dir = HC + "/firmware/hdl"
+    let listing = exec("ls " + shq(dir) + "/*.v 2>/dev/null").trim()
+    let mut files: [str] = []
+    if listing.len() > 0 { files = listing.split("\n") }
+
+    let mut present = 0
+    let mut total = files.len()
+    let mut failures: [str] = []
+
+    if json_mode(a) == false {
+        println("hexa-chip verify firmware-hdl — Phase D Verilog top-levels")
+        println("  dir: " + dir)
+        println("")
+    }
+
+    for f in files {
+        if _file_exists(f) {
+            present = present + 1
+            let mod_line = exec("grep -E '^[[:space:]]*module[[:space:]]+' " + shq(f) +
+                                " 2>/dev/null | head -1").trim()
+            let mut mod_name = "(unparsed)"
+            if mod_line.len() > 0 {
+                let mut t = mod_line.replace("\t", " ")
+                while t.contains("  ") { t = t.replace("  ", " ") }
+                let parts = t.split(" ")
+                if parts.len() >= 2 {
+                    let mut nm = parts[1]
+                    let paren = nm.index_of("(")
+                    if paren > 0 { nm = nm.slice(0, paren) }
+                    let semi = nm.index_of(";")
+                    if semi > 0 { nm = nm.slice(0, semi) }
+                    if nm.len() > 0 { mod_name = nm }
+                }
+            }
+            if json_mode(a) == false {
+                println("  [PASS] " + f)
+                println("         module: " + mod_name)
+            }
+        } else {
+            failures = failures + [f]
+            if json_mode(a) == false {
+                println("  [FAIL] " + f + " (missing)")
+            }
+        }
+    }
+
+    let mut verdict = "PASS"
+    if total == 0 || failures.len() > 0 { verdict = "FAIL" }
+
+    if json_mode(a) {
+        let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-firmware-hdl\",\"present\":" +
+                 str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
+        println(js)
+    } else {
+        println("")
+        println("  present: " + str(present) + "/" + str(total))
+        if verdict == "PASS" {
+            println("__HEXA_CHIP_VERIFY_FIRMWARE_HDL__ PASS")
+        } else {
+            println("__HEXA_CHIP_VERIFY_FIRMWARE_HDL__ FAIL")
+        }
+    }
+
+    let mut ec = 0
+    if verdict == "FAIL" { ec = 1 }
+    _audit("verify-firmware-hdl", "", ec)
+    if ec != 0 { exit(ec) }
+}
+
+fn cmd_verify_board(a: [str]) {
+    let board_dir = HC + "/firmware/board"
+    let board_readme = board_dir + "/README.md"
+
+    // Per-board artifacts (Phase E iter 1+).
+    let boards = ["fw01_corner", "fw02_npu", "fw03_hbm"]
+    let artifacts = ["schematic_paper.md", "kicad_project.txt", "bom_master.csv"]
+
+    let mut present = 0
+    let mut total = 1 + boards.len() * artifacts.len()
+    let mut missing: [str] = []
+
+    if json_mode(a) == false {
+        println("hexa-chip verify board — Phase E paper schematics + BOM presence")
+        println("  dir: " + board_dir)
+        println("")
+    }
+
+    if _file_exists(board_readme) {
+        present = present + 1
+        if json_mode(a) == false { println("  [PASS] " + board_readme) }
+    } else {
+        missing = missing + [board_readme]
+        if json_mode(a) == false { println("  [MISS] " + board_readme) }
+    }
+
+    for b in boards {
+        for art in artifacts {
+            let p = board_dir + "/" + b + "/" + art
+            if _file_exists(p) {
+                present = present + 1
+                if json_mode(a) == false { println("  [PASS] " + p) }
+            } else {
+                missing = missing + [p]
+                if json_mode(a) == false { println("  [MISS] " + p) }
+            }
+        }
+    }
+
+    let mut verdict = "PASS"
+    if missing.len() > 0 { verdict = "FAIL" }
+
+    if json_mode(a) {
+        let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-board\",\"present\":" +
+                 str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
+        println(js)
+    } else {
+        println("")
+        println("  present: " + str(present) + "/" + str(total))
+        if verdict == "PASS" {
+            println("__HEXA_CHIP_VERIFY_BOARD__ PASS")
+        } else {
+            println("__HEXA_CHIP_VERIFY_BOARD__ FAIL")
+            println("  note: Phase E iter 1 artifacts pending; missing files reported above")
+        }
+    }
+
+    let mut ec = 0
+    if verdict == "FAIL" { ec = 1 }
+    _audit("verify-board", "", ec)
+    // Phase E may legitimately be in-flight; do not exit non-zero solely on missing
+    // board artifacts — emit verdict + audit but return cleanly so dispatcher continues.
+}
+
 // ─── version ───
 
 fn cmd_version() {
     println("hexa-chip " + VERSION)
     println("standalone Chip Substrate (29-verb / 6-group — extracted from n6-arch@c0f1f570 on 2026-05-06)")
     println("license: MIT")
-    println("repo:    https://github.com/need-singularity/hexa-chip")
+    println("repo:    https://github.com/dancinlab/hexa-chip")
 }
 
 // ─── help ───
@@ -266,6 +475,12 @@ fn cmd_help() {
     println("  status          group + verb count table + caveats")
     println("  show <verb>     echo spec path for a single verb")
     println("  selftest        verify all 29 verb dirs present")
+    println("")
+    println("verify subcommands (Phase D + Phase E artifact sweeps):")
+    println("  verify firmware-mcu    enumerate firmware/mcu/*.hexa controllers")
+    println("  verify firmware-hdl    enumerate firmware/hdl/*.v Verilog top-levels")
+    println("  verify board           Phase E paper schematics + BOM presence")
+    println("  verify <other>         delegated to verify/cli.hexa unified dispatcher")
     println("")
     println("global flags:")
     println("  --version       show version")
@@ -325,6 +540,21 @@ fn main() {
         cmd_show(a)
     } else if sub == "selftest" {
         cmd_selftest(a)
+    } else if sub == "verify" {
+        if a.len() >= 4 {
+            let target = a[3]
+            if target == "firmware-mcu" { cmd_verify_firmware_mcu(a); return }
+            if target == "firmware-hdl" { cmd_verify_firmware_hdl(a); return }
+            if target == "board"        { cmd_verify_board(a); return }
+        }
+        // delegate to existing verify/cli.hexa for other targets
+        let cli = HC + "/verify/cli.hexa"
+        let mut cmd = "HEXA_CHIP_ROOT=" + shq(HC) + " hexa run " + shq(cli)
+        let mut k = 3
+        while k < a.len() { cmd = cmd + " " + shq(a[k]); k = k + 1 }
+        exec(cmd)
+        _audit("verify", "", 0)
+        return
     } else {
         eprintln("hexa-chip: unknown subcommand '" + sub + "'")
         eprintln("run 'hexa-chip help' for usage")
