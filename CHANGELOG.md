@@ -5,6 +5,40 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-08 — cli iter 5: `verify all` aggregator)
+
+- `cli/hexa-chip.hexa` `verify all` subcommand — aggregates the three
+  Phase D + Phase E artifact checks (firmware-mcu / firmware-hdl /
+  board) into one pass with a unified verdict. Output sections:
+  per-subverify body (header + per-file PASS/MISS + section verdict
+  sentinel), then an Aggregate summary block listing each section
+  verdict with `(present/total)` and a `__HEXA_CHIP_VERIFY_ALL__
+  PASS|FAIL` sentinel. JSON mode (`--json`) emits a single object with
+  a `sections[]` array per-section + `total_present` / `total_total`
+  rollup.
+- Refactor: each `cmd_verify_X` now wraps a `_run_verify_X(a,
+  aggregating: bool) -> str` helper. The aggregator passes
+  `aggregating=true` to suppress per-section JSON tails so only one
+  unified JSON object emits. Module-level `_AGG_*_PRESENT`/`_TOTAL`
+  accumulators expose section counts to `cmd_verify_all` without
+  re-doing the file checks.
+- `cmd_verify_board` updated to include Phase E iter 2 artifacts:
+  - top-level: `README.md`, `bom_master.csv`, `POWER_INTEGRITY.md`
+    (was just README.md before; bom_master.csv was incorrectly
+    expected per-board).
+  - per-board (× 3): `schematic_paper.md`, `kicad_project.txt`,
+    `power_chain.md`, `<id>.kicad_pro`.
+  - new total = 3 + 3 × 4 = **15** artifacts (was 10).
+- `cmd_help` updated to document `verify all`.
+- main dispatcher routes `verify all` → `cmd_verify_all`.
+
+Iteration log:
+- iter 1: 7-group/29-verb router scaffolding (v1.0.0).
+- iter 2: `status` / `show <verb>` / `selftest` placeholders.
+- iter 3: audit log + `--version` / `help` / `--json` flags.
+- iter 4 (commit 1c4e63d): `verify firmware-mcu / firmware-hdl / board` subcmds.
+- iter 5 (this commit): `verify all` aggregator + iter-2-aware `verify board`.
+
 ### Added (2026-05-08 — Phase E iter 2)
 
 Real KiCad 8 project skeletons + per-board power-chain spec — Phase E G1

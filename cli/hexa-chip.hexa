@@ -253,7 +253,16 @@ fn _to_upper(s: str) -> str {
     return exec("printf %s " + shq(s) + " | tr '[:lower:]' '[:upper:]'").trim()
 }
 
-fn cmd_verify_firmware_mcu(a: [str]) {
+// Module-level accumulators set by _run_verify_X helpers so cmd_verify_all
+// can report per-section counts without re-doing the file checks.
+let mut _AGG_MCU_PRESENT = 0
+let mut _AGG_MCU_TOTAL = 0
+let mut _AGG_HDL_PRESENT = 0
+let mut _AGG_HDL_TOTAL = 0
+let mut _AGG_BOARD_PRESENT = 0
+let mut _AGG_BOARD_TOTAL = 0
+
+fn _run_verify_firmware_mcu(a: [str], aggregating: bool) -> str {
     let dir = HC + "/firmware/mcu"
     let listing = exec("ls " + shq(dir) + "/*.hexa 2>/dev/null").trim()
     let mut files: [str] = []
@@ -289,11 +298,14 @@ fn cmd_verify_firmware_mcu(a: [str]) {
     let mut verdict = "PASS"
     if total == 0 || failures.len() > 0 { verdict = "FAIL" }
 
-    if json_mode(a) {
+    _AGG_MCU_PRESENT = present
+    _AGG_MCU_TOTAL = total
+
+    if json_mode(a) && aggregating == false {
         let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-firmware-mcu\",\"present\":" +
                  str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
         println(js)
-    } else {
+    } else if json_mode(a) == false {
         println("")
         println("  present: " + str(present) + "/" + str(total))
         if verdict == "PASS" {
@@ -303,13 +315,18 @@ fn cmd_verify_firmware_mcu(a: [str]) {
         }
     }
 
+    return verdict
+}
+
+fn cmd_verify_firmware_mcu(a: [str]) {
+    let verdict = _run_verify_firmware_mcu(a, false)
     let mut ec = 0
     if verdict == "FAIL" { ec = 1 }
     _audit("verify-firmware-mcu", "", ec)
     if ec != 0 { exit(ec) }
 }
 
-fn cmd_verify_firmware_hdl(a: [str]) {
+fn _run_verify_firmware_hdl(a: [str], aggregating: bool) -> str {
     let dir = HC + "/firmware/hdl"
     let listing = exec("ls " + shq(dir) + "/*.v 2>/dev/null").trim()
     let mut files: [str] = []
@@ -359,11 +376,14 @@ fn cmd_verify_firmware_hdl(a: [str]) {
     let mut verdict = "PASS"
     if total == 0 || failures.len() > 0 { verdict = "FAIL" }
 
-    if json_mode(a) {
+    _AGG_HDL_PRESENT = present
+    _AGG_HDL_TOTAL = total
+
+    if json_mode(a) && aggregating == false {
         let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-firmware-hdl\",\"present\":" +
                  str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
         println(js)
-    } else {
+    } else if json_mode(a) == false {
         println("")
         println("  present: " + str(present) + "/" + str(total))
         if verdict == "PASS" {
@@ -373,40 +393,55 @@ fn cmd_verify_firmware_hdl(a: [str]) {
         }
     }
 
+    return verdict
+}
+
+fn cmd_verify_firmware_hdl(a: [str]) {
+    let verdict = _run_verify_firmware_hdl(a, false)
     let mut ec = 0
     if verdict == "FAIL" { ec = 1 }
     _audit("verify-firmware-hdl", "", ec)
     if ec != 0 { exit(ec) }
 }
 
-fn cmd_verify_board(a: [str]) {
+fn _run_verify_board(a: [str], aggregating: bool) -> str {
     let board_dir = HC + "/firmware/board"
-    let board_readme = board_dir + "/README.md"
 
-    // Per-board artifacts (Phase E iter 1+).
+    // Top-level artifacts (one per repo, not per board).
+    let top_artifacts = ["README.md", "bom_master.csv", "POWER_INTEGRITY.md"]
+
+    // Per-board artifacts (Phase E iter 1 + iter 2).
+    //   iter 1: schematic_paper.md, kicad_project.txt
+    //   iter 2: <id>.kicad_pro, power_chain.md
     let boards = ["fw01_corner", "fw02_npu", "fw03_hbm"]
-    let artifacts = ["schematic_paper.md", "kicad_project.txt", "bom_master.csv"]
+    let board_kicad_pro = ["fw01_corner.kicad_pro", "fw02_npu.kicad_pro", "fw03_hbm.kicad_pro"]
+    let per_board_artifacts = ["schematic_paper.md", "kicad_project.txt", "power_chain.md"]
 
     let mut present = 0
-    let mut total = 1 + boards.len() * artifacts.len()
+    let mut total = top_artifacts.len() + boards.len() * (per_board_artifacts.len() + 1)
     let mut missing: [str] = []
 
     if json_mode(a) == false {
-        println("hexa-chip verify board — Phase E paper schematics + BOM presence")
+        println("hexa-chip verify board — Phase E iter 1 + iter 2 artifacts")
         println("  dir: " + board_dir)
         println("")
     }
 
-    if _file_exists(board_readme) {
-        present = present + 1
-        if json_mode(a) == false { println("  [PASS] " + board_readme) }
-    } else {
-        missing = missing + [board_readme]
-        if json_mode(a) == false { println("  [MISS] " + board_readme) }
+    for art in top_artifacts {
+        let p = board_dir + "/" + art
+        if _file_exists(p) {
+            present = present + 1
+            if json_mode(a) == false { println("  [PASS] " + p) }
+        } else {
+            missing = missing + [p]
+            if json_mode(a) == false { println("  [MISS] " + p) }
+        }
     }
 
-    for b in boards {
-        for art in artifacts {
+    let mut bi = 0
+    while bi < boards.len() {
+        let b = boards[bi]
+        for art in per_board_artifacts {
             let p = board_dir + "/" + b + "/" + art
             if _file_exists(p) {
                 present = present + 1
@@ -416,31 +451,119 @@ fn cmd_verify_board(a: [str]) {
                 if json_mode(a) == false { println("  [MISS] " + p) }
             }
         }
+        let kp = board_dir + "/" + b + "/" + board_kicad_pro[bi]
+        if _file_exists(kp) {
+            present = present + 1
+            if json_mode(a) == false { println("  [PASS] " + kp) }
+        } else {
+            missing = missing + [kp]
+            if json_mode(a) == false { println("  [MISS] " + kp) }
+        }
+        bi = bi + 1
     }
 
     let mut verdict = "PASS"
     if missing.len() > 0 { verdict = "FAIL" }
 
-    if json_mode(a) {
+    _AGG_BOARD_PRESENT = present
+    _AGG_BOARD_TOTAL = total
+
+    if json_mode(a) && aggregating == false {
         let js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-board\",\"present\":" +
                  str(present) + ",\"total\":" + str(total) + ",\"verdict\":\"" + verdict + "\"}"
         println(js)
-    } else {
+    } else if json_mode(a) == false {
         println("")
         println("  present: " + str(present) + "/" + str(total))
         if verdict == "PASS" {
             println("__HEXA_CHIP_VERIFY_BOARD__ PASS")
         } else {
             println("__HEXA_CHIP_VERIFY_BOARD__ FAIL")
-            println("  note: Phase E iter 1 artifacts pending; missing files reported above")
+            println("  note: Phase E artifacts pending; missing files reported above")
         }
     }
 
+    return verdict
+}
+
+fn cmd_verify_board(a: [str]) {
+    let verdict = _run_verify_board(a, false)
     let mut ec = 0
     if verdict == "FAIL" { ec = 1 }
     _audit("verify-board", "", ec)
     // Phase E may legitimately be in-flight; do not exit non-zero solely on missing
     // board artifacts — emit verdict + audit but return cleanly so dispatcher continues.
+}
+
+// ─── verify all (Phase D + Phase E aggregator) ───
+
+fn cmd_verify_all(a: [str]) {
+    let json = json_mode(a)
+    let mut overall = "PASS"
+
+    if json == false {
+        println("============================================================")
+        println(" hexa-chip verify all — Phase D + Phase E artifact sweep")
+        println("============================================================")
+        println("")
+    }
+
+    // Section 1: firmware-mcu
+    let v_mcu = _run_verify_firmware_mcu(a, true)
+    if v_mcu == "FAIL" { overall = "FAIL" }
+
+    if json == false {
+        println("")
+        println("------------------------------------------------------------")
+        println("")
+    }
+
+    // Section 2: firmware-hdl
+    let v_hdl = _run_verify_firmware_hdl(a, true)
+    if v_hdl == "FAIL" { overall = "FAIL" }
+
+    if json == false {
+        println("")
+        println("------------------------------------------------------------")
+        println("")
+    }
+
+    // Section 3: board
+    let v_board = _run_verify_board(a, true)
+    if v_board == "FAIL" { overall = "FAIL" }
+
+    let total_present = _AGG_MCU_PRESENT + _AGG_HDL_PRESENT + _AGG_BOARD_PRESENT
+    let total_total = _AGG_MCU_TOTAL + _AGG_HDL_TOTAL + _AGG_BOARD_TOTAL
+
+    if json {
+        let mut js = "{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"verify-all\","
+        js = js + "\"sections\":["
+        js = js + "{\"name\":\"firmware-mcu\",\"verdict\":\"" + v_mcu + "\",\"present\":" + str(_AGG_MCU_PRESENT) + ",\"total\":" + str(_AGG_MCU_TOTAL) + "},"
+        js = js + "{\"name\":\"firmware-hdl\",\"verdict\":\"" + v_hdl + "\",\"present\":" + str(_AGG_HDL_PRESENT) + ",\"total\":" + str(_AGG_HDL_TOTAL) + "},"
+        js = js + "{\"name\":\"board\",\"verdict\":\"" + v_board + "\",\"present\":" + str(_AGG_BOARD_PRESENT) + ",\"total\":" + str(_AGG_BOARD_TOTAL) + "}"
+        js = js + "],\"total_present\":" + str(total_present) + ",\"total_total\":" + str(total_total) + ",\"verdict\":\"" + overall + "\"}"
+        println(js)
+    } else {
+        println("")
+        println("============================================================")
+        println(" Aggregate")
+        println("============================================================")
+        println("  firmware-mcu : " + v_mcu + "   (" + str(_AGG_MCU_PRESENT) + "/" + str(_AGG_MCU_TOTAL) + ")")
+        println("  firmware-hdl : " + v_hdl + "   (" + str(_AGG_HDL_PRESENT) + "/" + str(_AGG_HDL_TOTAL) + ")")
+        println("  board        : " + v_board + "   (" + str(_AGG_BOARD_PRESENT) + "/" + str(_AGG_BOARD_TOTAL) + ")")
+        println("  -----------------------------------")
+        println("  TOTAL        : " + overall + "   (" + str(total_present) + "/" + str(total_total) + ")")
+        if overall == "PASS" {
+            println("__HEXA_CHIP_VERIFY_ALL__ PASS")
+        } else {
+            println("__HEXA_CHIP_VERIFY_ALL__ FAIL")
+        }
+    }
+
+    let mut ec = 0
+    if overall == "FAIL" { ec = 1 }
+    _audit("verify-all", "", ec)
+    if ec != 0 { exit(ec) }
 }
 
 // ─── version ───
@@ -479,7 +602,8 @@ fn cmd_help() {
     println("verify subcommands (Phase D + Phase E artifact sweeps):")
     println("  verify firmware-mcu    enumerate firmware/mcu/*.hexa controllers")
     println("  verify firmware-hdl    enumerate firmware/hdl/*.v Verilog top-levels")
-    println("  verify board           Phase E paper schematics + BOM presence")
+    println("  verify board           Phase E paper schematics + KiCad pro + power chain")
+    println("  verify all             aggregate firmware-mcu + firmware-hdl + board")
     println("  verify <other>         delegated to verify/cli.hexa unified dispatcher")
     println("")
     println("global flags:")
@@ -546,6 +670,7 @@ fn main() {
             if target == "firmware-mcu" { cmd_verify_firmware_mcu(a); return }
             if target == "firmware-hdl" { cmd_verify_firmware_hdl(a); return }
             if target == "board"        { cmd_verify_board(a); return }
+            if target == "all"          { cmd_verify_all(a); return }
         }
         // delegate to existing verify/cli.hexa for other targets
         let cli = HC + "/verify/cli.hexa"
