@@ -95,7 +95,7 @@ All 3 boards share these power-up rules (encoded in their respective sequencers)
 | gate | PI-related deliverable                              | board priority   | status   |
 |:----:|:---------------------------------------------------|:-----------------|:---------|
 | G1   | KiCad schematic with netclasses applied             | all 3            | started  |
-| G2   | HyperLynx PI / SI sweeps (target Z + eye height)    | FW-03 → FW-02    | pending  |
+| G2   | HyperLynx PI / SI sweeps (target Z + eye height)    | FW-03 → FW-02    | input-deck spec'd (`HYPERLYNX_PI_DECK.md` — Phase E iter 4) |
 | G3   | Gerber DRC clean + Stack-up sign-off                | all 3            | pending  |
 | G4   | Final PMIC/regulator BOM lock + lifecycle check     | FW-03 (PMU lead) | pending  |
 | G5   | Physical board: PI bench measurement (VNA + scope)  | all 3            | pending  |
@@ -109,4 +109,5 @@ estimated $5–8 K licence + 2 engineer-weeks per board.
 - Block schematics: `fw0{1,2,3}/schematic_paper.md`
 - Pinmap + budget table: `firmware/doc/board_v0_spec.md`
 - BOM aggregate: `bom_master.csv`
+- HyperLynx PI/SI input deck: `HYPERLYNX_PI_DECK.md` (Phase E iter 4)
 - Roadmap: `.roadmap.hexa_chip §A.6`

@@ -57,7 +57,7 @@ Paper board spec (pinmap + power + bringup): `firmware/doc/board_v0_spec.md`.
 | gate | deliverable                                    | needs                       | status     |
 |:-----|:-----------------------------------------------|:----------------------------|:-----------|
 | G1   | KiCad schematic (paper → `.kicad_sch`)         | engineer-week per board     | started (iter 2 — `.kicad_pro` skeleton landed) |
-| G2   | PCB layout placeholder (`.kicad_pcb`) + PI/SI sweep | layout tool licence + HyperLynx | pending |
+| G2   | PCB layout placeholder (`.kicad_pcb`) + PI/SI sweep | layout tool licence + HyperLynx | input-deck spec'd (iter 4 — `HYPERLYNX_PI_DECK.md` landed) |
 | G3   | Fab quote (Gerber → JLCPCB / Eurocircuits)     | finalized BOM + Gerbers     | pending    |
 | G4   | BOM finalization (vendor lock + lifecycle)     | NDA close (Samsung+SK Hynix)| pending    |
 | G5   | Physical procurement + pilot run (qty 10)      | ~$25 K funding + lab space  | pending    |
@@ -72,11 +72,24 @@ engineer-week per board. G2–G5 require funding (~$25 K) plus foundry MOU
 
 - **Iter 1 (commit 1322c97):** paper schematics (`schematic_paper.md` × 3),
   KiCad intent stubs (`kicad_project.txt` × 3), aggregated `bom_master.csv`.
-- **Iter 2 (this commit):** real KiCad 8 project skeletons
+- **Iter 2 (commit 47ef9ac):** real KiCad 8 project skeletons
   (`<id>.kicad_pro` × 3) with netclasses + design rules + text variables;
   per-board detailed power-chain spec (`power_chain.md` × 3) covering rail
   tree, decoupling network, sequencer timing, FMEA-lite, PI verification
   path; cross-board rollup `POWER_INTEGRITY.md`.
+- **Iter 4 (this commit):** `HYPERLYNX_PI_DECK.md` — paper-tier
+  HyperLynx PI/SI input deck spec covering all 3 boards: per-board
+  stack-up (4-layer FR-4 / 8-layer Megtron 6 / 10-layer HDI Megtron 7);
+  HyperLynx netclass definitions; critical-net catalog (PCIe Gen5,
+  DDR4 byte lanes, HBM4 PHY 2048-bit DQ + 32-strobe); PI sweep
+  parameters (Z_target curves 1 kHz – 500 MHz); SI eye/jitter pass
+  criteria per spec (PCIe Gen5 BASE §8, DDR4 JESD79-4C, HBM4 spec);
+  vendor SPICE/IBIS model imports needed; mesh/solver settings;
+  estimated runtime per board. G2 gate moves from `pending` to
+  `input-deck spec'd`.
+
+(Phase E iter 3 — `.kicad_sch` schematic capture — remains pending;
+gated on engineer-week per board.)
 
 ## Constraints (paper-tier)
 
