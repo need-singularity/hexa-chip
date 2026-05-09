@@ -1,4 +1,4 @@
-<!-- @canonical: n6-architecture@0570a835:domains/compute/chip-npu-n6/chip-npu-n6.md -->
+<!-- @canonical: canon@d1640e62:domains/compute/chip-npu-n6/chip-npu-n6.md -->
 <!-- @extracted: 2026-05-06 -->
 <!-- @md5_at_extraction: db0074e5c27634f903d975271e6d5869 -->
 <!-- gold-standard: shared/harness/sample.md -->

@@ -128,7 +128,7 @@ fn _print_caveats() {
     println("")
     println("--- caveats (raw#10 C3) ---")
     println("  1. v1.1.0 is SPEC-FIRST. 30/30 verbs ship as spec directories;")
-    println("     29 extracted from n6-architecture@c0f1f570 + 1 (hexa_ai_native_n6)")
+    println("     29 extracted from canon@c0f1f570 + 1 (hexa_ai_native_n6)")
     println("     added Phase G iter 9. Per-verb working .hexa CLI sandboxes are TBD.")
     println("  2. n=6 invariant lattice is referenced by ISA/architecture verbs")
     println("     (isa_n6, hexa1) + ai-native verbs (hexa_ai_native_n6 §5);")
@@ -198,7 +198,7 @@ fn cmd_show(a: [str]) {
     println("hexa-chip verb spec — " + v)
     println("  path: " + HC + "/" + v + "/")
     println("  status: SPEC_FIRST (working .hexa CLI sandbox TBD)")
-    println("  source: n6-architecture/domains/compute/<canonical-name> @ c0f1f570")
+    println("  source: canon/domains/compute/<canonical-name> @ c0f1f570")
     if json_mode(a) {
         println("{\"hexa_chip\":\"" + VERSION + "\",\"subcmd\":\"show\",\"verb\":\"" + v + "\",\"status\":\"spec_first\"}")
     }

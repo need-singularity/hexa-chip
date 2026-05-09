@@ -36,7 +36,7 @@ fn _has_any_md(dir: str) -> bool {
 }
 
 // (verb, group, expected canonical .md basename — chip-<verb> with
-// hyphens for compound verbs, mirroring n6-architecture/domains/compute/
+// hyphens for compound verbs, mirroring canon/domains/compute/
 // extraction names listed in README.md §Verbs).
 let GROUPS = [
     ["architecture",       "architecture"],

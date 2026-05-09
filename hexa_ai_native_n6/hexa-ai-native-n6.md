@@ -1,4 +1,4 @@
-<!-- @canonical: n6-architecture@c0f1f570:domains/compute/ai-native-architecture/ai-native-architecture.md -->
+<!-- @canonical: canon@c0f1f570:domains/compute/ai-native-architecture/ai-native-architecture.md -->
 <!-- @extracted: 2026-05-08 -->
 <!-- @snapshot_policy: 6-month-stale; canon SSOT is upstream -->
 ---

@@ -46,7 +46,7 @@ DoD:
 
 ## §A.3 Cycle history
 
-- **Cycle 0 (2026-05-06)** — v1.0.0 initial extraction from n6-architecture@c0f1f570. 28 verb / 7 그룹 cp -R.
+- **Cycle 0 (2026-05-06)** — v1.0.0 initial extraction from canon@c0f1f570. 28 verb / 7 그룹 cp -R.
 
 ## §A.4 Falsifier preregister
 
@@ -82,7 +82,7 @@ firing 으로 닫히지 않음. 본 §A.6 는 `tracking only` — 진행 시 Cyc
 
 **현재 (2026-05-08) 상태**: 모든 step 미착수. v2.0.0 = 종이 위 설계 +
 verb spec 디렉토리 29 개 (group: architecture · design · process ·
-packaging · accelerator · consciousness, n6-architecture@c0f1f570 추출).
+packaging · accelerator · consciousness, canon@c0f1f570 추출).
 이 verb spec 표가 §A.6.1 step A 의 출발점.
 
 ### §A.6.0 진행 현황 (2026-05-08 pivot 시점)

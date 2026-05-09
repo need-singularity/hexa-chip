@@ -541,7 +541,7 @@ Stage-1+ tape-out cycles per recipe §9. Loop continues toward sat-2
 
 ### Added
 
-- Initial standalone extraction from `n6-architecture/domains/compute/`
+- Initial standalone extraction from `canon/domains/compute/`
   at SHA `c0f1f570` (2026-05-06).
 - **28-verb / 7-group Chip Substrate** organised as:
   - **architecture (3)** — `architecture`, `isa_n6`, `hexa1`
@@ -564,7 +564,7 @@ Stage-1+ tape-out cycles per recipe §9. Loop continues toward sat-2
 ### Honest scope (raw#10 C3)
 
 - **0 of 28 verbs is empirically wired** at v1.0.0. All verbs ship as
-  spec directories (the cp -R'd `n6-architecture/domains/compute/<name>/`
+  spec directories (the cp -R'd `canon/domains/compute/<name>/`
   trees); per-verb working `.hexa` CLI sandboxes are deferred to
   post-v1.0 cycles.
 - **n=6 invariant lattice** is referenced explicitly by `isa_n6` and
@@ -582,7 +582,7 @@ Stage-1+ tape-out cycles per recipe §9. Loop continues toward sat-2
 
 ### Provenance
 
-- Extracted from `n6-architecture/domains/compute/` at SHA `c0f1f570`
+- Extracted from `canon/domains/compute/` at SHA `c0f1f570`
   (commit `proposal(infra): reframe critical-mineral-arbitration
   kick-spec to peaceful-only scope`, 2026-05-06).
 - Sister extractions in `dancinlab` org: `hexa-bio` (4 molecular

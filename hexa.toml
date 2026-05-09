@@ -2,7 +2,7 @@
 #
 # Spec: shared/hexa-lang/hexa-toml-spec.json (version 1.0.0)
 # Distribution target: hx install hexa-chip
-# Provenance: extracted from n6-architecture/domains/compute/ on 2026-05-06
+# Provenance: extracted from canon/domains/compute/ on 2026-05-06
 #             (n6-arch SHA c0f1f570; 28-verb 7-group chip substrate)
 
 [package]
@@ -75,7 +75,7 @@ groups_total = 6
 verbs_wired = 29       # 2026-05-07 buildout: every verb has verify_<verb>.hexa
 verbs_spec = 29
 verdict = "SPEC_PLUS_RUNNABLE"   # 2026-05-07 — was SPEC_FIRST at v1.0.0
-extracted_from = "n6-architecture/domains/compute/ @ c0f1f570"
+extracted_from = "canon/domains/compute/ @ c0f1f570"
 spec_count_caveat = "kick-spec one-liner read '28-verb / 7-group'; explicit verb_map enumerated 29 verbs across 6 group categories. v1.0.0 honors the line-by-line map."
 runnable_surface = "verify/cli.hexa (5 checks) + verify/verb_runner.hexa (29 sandboxes) + tests/run_tests.hexa (4 tests) — make ci aggregates"
 

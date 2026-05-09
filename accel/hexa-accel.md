@@ -1,4 +1,4 @@
-<!-- @canonical: n6-architecture@0570a835:domains/compute/hexa-accel/hexa-accel.md -->
+<!-- @canonical: canon@d1640e62:domains/compute/hexa-accel/hexa-accel.md -->
 <!-- @extracted: 2026-05-06 -->
 <!-- @md5_at_extraction: 188260fde2b32ef074400e88c93f8417 -->
 <!-- gold-standard: shared/harness/sample.md -->

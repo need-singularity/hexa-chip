@@ -88,7 +88,7 @@ fn _shq(s: str) -> str {
 }
 
 // Each verb may declare its sandbox with one of several filename patterns,
-// mirroring the n6-architecture extraction conventions. Rather than
+// mirroring the canon extraction conventions. Rather than
 // hard-code every pattern, glob the verb directory for any .hexa file
 // that starts with `verify_` or `chip_` (chip_isa_n6.hexa style ISA
 // driver). First match wins — directory ordering is alphabetical.

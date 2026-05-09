@@ -3,7 +3,7 @@
 **Release date**: 2026-05-06
 **Closure verdict**: **SPEC_FIRST** (28/28 verbs land as spec directories
 across 7 groups; per-verb working `.hexa` CLI sandboxes TBD)
-**Provenance**: extracted 2026-05-06 from `n6-architecture/domains/compute/`
+**Provenance**: extracted 2026-05-06 from `canon/domains/compute/`
 at SHA `c0f1f570`. Sister-extraction of `hexa-bio` (molecular toolkit, 4
 verbs), `hexa-rtsc`, `hexa-codex`, and the wider `need-singularity` family
 (`hexa-{antimatter, bot, brain, cosmos, earth, energy, fantasy, fusion,
@@ -13,7 +13,7 @@ This is the **initial standalone release** of `hexa-chip`, the chip
 substrate of the HEXA family — a 28-verb / 7-group semiconductor stack
 extracted as one repository so downstream consumers (`hexa-rtsc`,
 `hexa-codex`, `anima`) can pin chip-axis vocabulary without dragging the
-full `n6-architecture` monorepo.
+full `canon` monorepo.
 
 ## Highlights
 
@@ -22,7 +22,7 @@ full `n6-architecture` monorepo.
   architecture → design → process → packaging → accelerator →
   consciousness.
 - **Spec-first** distribution. Each verb is a `cp -R`'d directory tree
-  from `n6-architecture/domains/compute/<canonical-name>/`; per-verb
+  from `canon/domains/compute/<canonical-name>/`; per-verb
   working `.hexa` CLI sandboxes (with simulators, falsifier preregisters,
   honesty audits) are deferred to post-v1.0 cycles.
 - **Placeholder CLI dispatcher** (`cli/hexa-chip.hexa`) — three
@@ -97,7 +97,7 @@ ls $HEXA_CHIP_ROOT/architecture/   # browse verb spec directly
 
 ## Provenance
 
-- Extracted from `n6-architecture/domains/compute/` at SHA `c0f1f570`
+- Extracted from `canon/domains/compute/` at SHA `c0f1f570`
   (commit `proposal(infra): reframe critical-mineral-arbitration kick-spec
   to peaceful-only scope`, 2026-05-06).
 - Verb naming: `chip-<x>` / `advanced-<x>` / `hexa-<x>` / `consciousness-<x>`

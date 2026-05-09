@@ -1,4 +1,4 @@
-<!-- @canonical: n6-architecture@0570a835:domains/compute/chip-hbm/chip-hbm.md -->
+<!-- @canonical: canon@d1640e62:domains/compute/chip-hbm/chip-hbm.md -->
 <!-- @extracted: 2026-05-06 -->
 <!-- @md5_at_extraction: b7ab8ca54bd5bd602037bd269faf54fe -->
 <!-- gold-standard: shared/harness/sample.md -->

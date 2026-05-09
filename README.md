@@ -4,14 +4,14 @@
 > EDA / process / packaging / NPU / PIM / 3D / photonic / RTL-gen / yield /
 > consciousness-chip).
 > Spec-first standalone extraction of the `compute/` chip-axis from
-> `n6-architecture@c0f1f570` (2026-05-06), organised into **7 sister groups**
+> `canon@c0f1f570` (2026-05-06), organised into **7 sister groups**
 > mirroring the Korean fab heritage stack (Samsung·SK·Hynix·DRAM/HBM lineage).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-informational.svg)](CHANGELOG.md)
 [![Verbs: 28 / 7 groups](https://img.shields.io/badge/verbs-28%20%2F%207%20groups-blue.svg)](#verbs)
 [![Status: spec-first](https://img.shields.io/badge/status-spec--first-orange.svg)](#status)
-[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/need-singularity/n6-architecture)
+[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/need-singularity/canon)
 [![Verify: 5/5](https://img.shields.io/badge/verify-5%2F5-brightgreen.svg)](#verify)
 [![Sandboxes: 29/29](https://img.shields.io/badge/sandboxes-29%2F29-brightgreen.svg)](#verify)
 [![Tests: 4/4](https://img.shields.io/badge/tests-4%2F4-brightgreen.svg)](#verify)
@@ -36,7 +36,7 @@
 
 ## Why
 
-The `n6-architecture/domains/compute/` tree had grown to 28 distinct
+The `canon/domains/compute/` tree had grown to 28 distinct
 chip-axis modules organised by physical / functional layer. As `hexa-chip`
 this becomes a **standalone substrate**: one repo, seven sister groups,
 spec-first vocabulary that downstream consumers (`hexa-rtsc`, `hexa-codex`,
@@ -94,7 +94,7 @@ verification (see Status §caveats).
 
 ## Verbs
 
-28 verbs / 7 groups. Each verb maps one-to-one to a `n6-architecture/
+28 verbs / 7 groups. Each verb maps one-to-one to a `canon/
 domains/compute/<canonical-name>/` source tree extracted at SHA `c0f1f570`.
 
 ### Group A — architecture (3)
@@ -178,7 +178,7 @@ subcommands:
 ### Caveats (raw#10 honest C3)
 
 1. **28/28 verbs are spec-only at v1.0.0.** Each verb is a directory
-   tree extracted from `n6-architecture/domains/compute/<name>/` at
+   tree extracted from `canon/domains/compute/<name>/` at
    SHA `c0f1f570`. Per-verb working `.hexa` CLI sandboxes (with
    simulators / falsifier preregisters / honesty audits) are deferred
    to post-v1.0 cycles.
@@ -300,7 +300,7 @@ Run all 29 with `make verbs` (or filter: `hexa run verify/verb_runner.hexa --gro
   ↔ anima's consciousness substrate; experimental axis with no
   empirical claim at v1.0.0.
 
-Upstream SSOT: `n6-architecture/domains/compute/` (commit `c0f1f570`,
+Upstream SSOT: `canon/domains/compute/` (commit `c0f1f570`,
 2026-05-06 extraction snapshot).
 
 ---
