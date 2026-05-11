@@ -173,6 +173,11 @@ first meta-domain — an outer envelope wrapping all 6 groups, NOT a verb.
 The 28-verb / 6-group surface, falsifier register, and closure verdict
 are unchanged. See `hexa.toml` `[meta_domains.terafab]` and `terafab/README.md`.
 
+**Repository classification (2026-05-12)**: `CATALOG.md` is the canonical
+7-tier taxonomy (T0..T6) of every directory and root file (60 dirs / 13
+root files / mirrors `ticket-out/` 00..07 numbered-role convention).
+Audited by `verify_catalog.py` (C1+C2+C3 PASS).
+
 Working `cli/hexa-chip.hexa` is a placeholder dispatcher with three
 subcommands:
 

@@ -5,6 +5,33 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-12 — repository taxonomy)
+
+Non-invasive 7-tier classification of every top-level directory and root file.
+Mirrors the `ticket-out/` numbered-role convention (00..07 → T0..T6). Zero
+file moves, zero renames; the canonical 29-verb / 6-group surface and v1.0.0
+closure verdict are unchanged.
+
+- `CATALOG.md` (root) — 7-tier taxonomy (T0 meta · T1 modules · T2 envelope ·
+  T3 runtime · T4 knowledge · T5 deferred · T6 legacy-frozen) covering 60
+  directories. Includes per-tier membership table, maturity profile,
+  honesty audit, recommended next moves, and quick-recall facts card.
+- `verify_catalog.py` (root) — runnable audit (stdlib-only) asserting
+  C1 filesystem ↔ tiers agreement, C2 `hexa.toml [modules.*]` ≡ T1 surface,
+  C3 `[meta_domains.terafab].absorbs` ≡ 6 T1 group names. All 3 PASS.
+- `README.md` — added "Repository classification" pointer in Status section
+  linking to `CATALOG.md`.
+
+**Honesty notes**:
+- T6 (16 legacy-frozen leaves from `canon@ded52144`, 2026-05-10) are
+  classified but not moved. Three reorg options (α/β/γ) documented
+  inside `CATALOG.md` for future consideration.
+- T5 (3 deferred verb candidates: `ai_native_arch/` · `gpgpu_n6/` ·
+  `hexa_ai_native_n6/`) remain gated; the 9-step promotion checklist is
+  inside `CATALOG.md` and requires an explicit user gate plus a v1.1.0
+  release bump.
+- `state/` (T3, ~2880 files of CLI markers) is already `.gitignored`.
+
 ### Added (2026-05-11 — Wave 6.x: terafab closure-deepening, commit 61d2115)
 
 Locks the terafab meta-domain at **`SPEC_PLUS_RUNNABLE` closure verdict**.
