@@ -5,6 +5,48 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-11 — Wave 6: terafab meta-domain absorption, commit f44982f)
+
+First **meta-domain** in the hexa-chip tree. `terafab/` is the outer
+envelope wrapping all 6 hexa-chip groups (architecture / design /
+process / packaging / accelerator / consciousness) under Musk's
+vertically-integrated megafab announcement (Tesla / xAI / SpaceX /
+Intel; announce 2026-03-21; \$55 B initial / \$119 B prototype filing
+2026-05-06).
+
+- `terafab/terafab.md` (665 lines) — 15-section template matching
+  `exynos/exynos.md` (WHY / COMPARE / REQUIRES / STRUCT / FLOW /
+  VERIFY / EVOLVE / IDEAS / METRICS / RISKS / DEPENDENCIES / TIMELINE
+  / TOOLS / TEAM / REFERENCES). Frontmatter declares
+  `meta-domain: terafab` + `absorbs:` mapping to the 6 groups +
+  `requires:` cross-link to `exynos` (Korean fab heritage comparator).
+- `terafab/falsifier-mk2-scaffold.md` (309 lines) — Mk.II falsifier
+  reformulation with public-source data hooks (replaces Mk.I
+  coincidence registry; F-TERAFAB-7 deferred to Mk.II per scaffold).
+- F-TERAFAB-1..10 falsifier register (7 Mk.I + 3 Mk.II-only).
+- `hexa.toml` `[meta_domains.terafab]` envelope registration
+  (+15 lines).
+- `proposals/samsung-foundry-hexa-6stage.md` §8 Terafab counter-strategy
+  (+128 lines) — asymmetric ~100× leverage thesis (IP licensing vs
+  \$119 B fab build), SAFE VI-RDK tier, HBM6-P priority bump,
+  F-TERAFAB-1..7 falsifier dashboard.
+
+### Changed (2026-05-11 — Wave 6)
+
+- (nothing — meta-domain is additive; 28-verb / 6-group surface,
+  falsifier closure verdict, and version badge are all unchanged.)
+
+### Notes (2026-05-11 — Wave 6)
+
+- External-source absorption only; zero NDA / proprietary content.
+  All numbers traceable to `terafab/terafab.md` §15 source list
+  (Wikipedia, Tom's Hardware, The Register, CNBC, DCD, Electrek,
+  TechCrunch).
+- n=6 lattice projection at Mk.I yields p ≈ 0.86 (cannot beat chance)
+  — explicitly marked as **coincidence registry**, not derivation.
+  F-TERAFAB-7 reformulation deferred to Mk.II per
+  `terafab/falsifier-mk2-scaffold.md`.
+
 ### Added (2026-05-08 — cli iter 5: `verify all` aggregator)
 
 - `cli/hexa-chip.hexa` `verify all` subcommand — aggregates the three

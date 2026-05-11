@@ -169,6 +169,11 @@ packaging + accelerator + consciousness). Spec-first (per-verb working
 톤을 유지하되 어떤 proprietary 자료, NDA 콘텐츠, trade-secret 도 포함하지
 않는다.
 
+**Meta-domain layer (2026-05-11)**: `terafab/` registered as the project's
+first meta-domain — an outer envelope wrapping all 6 groups, NOT a verb.
+The 28-verb / 6-group surface, falsifier register, and closure verdict
+are unchanged. See `hexa.toml` `[meta_domains.terafab]` and `terafab/README.md`.
+
 Working `cli/hexa-chip.hexa` is a placeholder dispatcher with three
 subcommands:
 
@@ -300,6 +305,17 @@ Run all 29 with `make verbs` (or filter: `hexa run verify/verb_runner.hexa --gro
 - **`need-singularity/anima`** — `conscious_chip/` + `conscious_soc/`
   ↔ anima's consciousness substrate; experimental axis with no
   empirical claim at v1.0.0.
+
+### Meta-domains (Wave 6, 2026-05-11)
+
+- **`terafab/`** — Musk vertically-integrated megafab (Tesla / xAI / SpaceX /
+  Intel) absorbed as the project's first meta-domain. An *outer envelope*
+  wrapping all 6 hexa-chip groups under one captive owner; not a verb;
+  28-verb / 6-group counts unchanged. Sub-files: `terafab/terafab.md` (15-section
+  meta-doc, F-TERAFAB-1..7 register) + `terafab/falsifier-mk2-scaffold.md`
+  (Mk.II reformulation scaffold, +F-TERAFAB-8..10).
+  Manifest registration: `hexa.toml` `[meta_domains.terafab]`.
+  Counter-strategy: `proposals/samsung-foundry-hexa-6stage.md` §8.
 
 Upstream SSOT: `canon/domains/compute/` (commit `c0f1f570`,
 2026-05-06 extraction snapshot).

@@ -104,5 +104,24 @@ not_scope = [
 ]
 n6_lattice_caveat = "n=6 invariant referenced for ISA/architecture decomposition only (isa_n6, hexa1). Process/packaging/accelerator groups inherit organising convention without independent invariant-fit verification."
 
+# ── Meta-domain closure (terafab envelope, Wave A~D) ──────
+# 메타-도메인 closure 는 verb-level closure 와 *별개의* 회계.
+# Terafab envelope 은 28-verb / 6-group 표면을 변경하지 않고
+# 외피로만 등록되며, 자체 falsifier register (F-TERAFAB-1..10) 와
+# runnable verify_terafab.py / cross_doc_audit.py 한 쌍으로
+# closure 를 선언한다. (verb 카운트는 위 [closure] 가 단일 권위.)
+[meta_domain_closure]
+envelopes_total = 1                  # terafab
+envelopes_wired = 1                  # has runnable verify_terafab.py
+envelopes_audited = 1                # cross_doc_audit.py passes
+falsifiers_total = 10                # F-TERAFAB-1..10 (7 Mk.I + 3 Mk.II)
+falsifiers_runnable = 10             # all 10 dispatched by verify_terafab.py
+groups_wrapped = 6                   # all 6 hexa-chip groups absorbed
+verdict = "SPEC_PLUS_RUNNABLE"
+verb_surface_unchanged = true        # verbs_total/groups_total NOT bumped
+nda_content = false
+extracted_from = "external-research absorption (2026-05-11) — Musk Terafab announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06"
+caveat = "Meta-domain envelope; F-TERAFAB-1..6 are bench-only at Mk.I (data-arrival pending); F-TERAFAB-7 χ² currently weak (p≈0.86), reformulation deferred to Mk.II per terafab/falsifier-mk2-scaffold.md."
+
 [cost]
 mac_local_default = "$0 (spec-first; no external tooling invoked)"
