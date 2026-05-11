@@ -5,6 +5,83 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-11 — Wave 6.x: terafab closure-deepening, commit 61d2115)
+
+Locks the terafab meta-domain at **`SPEC_PLUS_RUNNABLE` closure verdict**.
+25 files (+4,708 lines), 19 new artifacts under `terafab/` + `tests/` +
+`cli/`. Verb surface (29-verb / 6-group) and v1.0.0 closure verdict
+unchanged.
+
+- `terafab/README.md` (128) — navigation index with 5 status badges +
+  per-file inventory + runnable verification recipe.
+- `terafab/CLOSURE.md` (205) — closure declaration: verdict / inventory /
+  invariants asserted / honest caveats / what-not-claimed / re-verify
+  recipe / sign-off.
+- `terafab/mapping-28verbs.md` (230) — explicit 29-verb × T0/T1/T2/T3
+  tier mapping (13 primary / 5 secondary / 11 speculative / 0 unmapped).
+- `terafab/group-{architecture,design,process,packaging,accelerator,consciousness}.md`
+  (814 lines total) — per-group integration with honest speculative
+  flags. Headline findings: `eda` honestly external; `yield` is the
+  meta-domain bottleneck (drives F-TERAFAB-1/3/5/6); `hbm` directly
+  tests F-TERAFAB-2; `consciousness` is the lightest coupling.
+- `terafab/sources.md` (390) — 16-source citation database
+  (`SRC-TERAFAB-001..016`) with key-claims + falsifier links.
+- `terafab/risks-deep.md` (353) — quantitative P×I scoring; top-3
+  R5 zero-fab (5.60) / R1 capex (4.80) / R6 thermal (4.50);
+  aggregate Mk.I 32.6/80 = 40.7% (≈ 1.6× TSMC AZ Fab 21).
+- `terafab/diff-vs-tsmc.md` (308) — 4-way comparison Terafab vs TSMC AZ /
+  Samsung Taylor / Intel AZ across 10 dimensions; joint novelty-landing
+  ≤ 25%.
+- `terafab/orbital-physics-deep.md` (409) — Stefan-Boltzmann sweep
+  (radiator 297-3,110 km² across 5×4 (T,ε)) + Carnot ceilings + mass
+  budget (Starship 9.5k-48k flights raw; ×3 with TMR).
+- `terafab/glossary.md` (177) — 63-entry terminology dictionary
+  (process / packaging / memory / orbital / companies / falsifier /
+  n=6 lattice).
+- `terafab/scenarios.md` (500) — 5 future scenarios with
+  falsifier-branch outcomes (S1 full-delivery 0.05 / S2 capex bloat
+  0.25 / S3 memory abandoned 0.30 / S4 orbital collapse 0.30 /
+  S5 cancel 0.10; Σp = 1.00).
+- `terafab/competitive-landscape.md` (310) — global megafab landscape
+  (USA / East Asia / EU / India) + scarce-resource competition
+  (ASML High-NA EUV / ERCOT / water / CHIPS Act).
+- `terafab/verify_terafab.py` (249) — runnable falsifier checker:
+  master identity / Egyptian split / capex didactic / Stefan-Boltzmann /
+  F-TERAFAB-1..10 register dump → 6/6 HARD PASS, 9 DEFERRED.
+- `terafab/cross_doc_audit.py` (255) — cross-doc agreement auditor
+  (`terafab.md` ↔ `hexa.toml` ↔ scaffold ↔ README) → ALL FACTS AGREE.
+- `tests/test_terafab_meta.py` (93) — 8/8 unittest invariants
+  (envelope claim / verb-count preservation / `absorbs` ≡ `[modules.*]`).
+- `cli/hexa-chip-terafab.py` — Python CLI mirror exposing the `terafab`
+  subcommand standalone (the bespoke `.hexa` runtime not always present).
+
+### Changed (2026-05-11 — Wave 6.x)
+
+- `hexa.toml` — added `[meta_domain_closure]` (12 fields, verdict
+  `SPEC_PLUS_RUNNABLE`); existing `[modules.*]` and `[closure]`
+  (verbs_total = 29, groups_total = 6) untouched.
+- `cli/hexa-chip.hexa` — `terafab` subcommand wired into dispatcher;
+  existing `status` / `show` / `selftest` / `verify` paths unchanged.
+- `terafab/README.md` — placeholder rows replaced with actual line
+  counts; Closure badge upgraded to `SPEC_PLUS_RUNNABLE`; runnable
+  verification section added.
+- `.gitignore` — added `__pycache__/` + `*.pyc` (Python cache from
+  terafab verify scripts + tests).
+
+### Notes (2026-05-11 — Wave 6.x)
+
+- All Mk.I assertions HARD PASS; all Mk.I-Mk.VI bench-only falsifiers
+  marked DEFERRED with documented numeric triggers (no goalpost-moving).
+- F-TERAFAB-7 χ² = 0.20, p = 0.86 reproduced exactly — explicitly
+  flagged as **coincidence registry** in `risks-deep.md` and
+  `CLOSURE.md`; reformulation deferred to Mk.II per
+  `falsifier-mk2-scaffold.md`.
+- Stefan-Boltzmann floor reproduced in `orbital-physics-deep.md`
+  embedded Python; matches `terafab.md` §7.E (~1,300 km² @ 350 K, ε=0.9).
+- External-source absorption only; zero NDA / proprietary content.
+- Closure is for the **meta-domain envelope** only; verb-level closure
+  unchanged.
+
 ### Added (2026-05-11 — Wave 6: terafab meta-domain absorption, commit f44982f)
 
 First **meta-domain** in the hexa-chip tree. `terafab/` is the outer
