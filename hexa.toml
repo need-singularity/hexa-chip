@@ -74,6 +74,20 @@ falsifier_count = 7      # F-TERAFAB-1..7
 nda_content = false
 note = "Outer envelope wrapping the 6 hexa-chip groups; NOT a verb. Does not change the 28-verb / 6-group counts."
 
+# ── Meta-domain envelope (exynos) ──────────────────────────
+# Sister envelope to terafab. Samsung Korean-fab heritage anchor.
+# Exynos / Samsung Foundry / 40-year IDM heritage 의 외부 공시값만
+# 흡수한 envelope (Samsung NDA / 내부 자료 / 영업기밀 일체 없음).
+# 29-verb / 6-group 카운트는 변경하지 않는다 — 외피로만 등록.
+[meta_domains.exynos]
+absorbs = ["architecture", "design", "process", "packaging", "accelerator", "consciousness"]
+type = "korean-fab-heritage"
+source = "public-source absorption (2026-05-12)"
+entry = "exynos/exynos.md"
+falsifier_count = 7      # F-EXYNOS-1..7
+nda_content = false
+note = "Outer envelope wrapping the 6 hexa-chip groups under Samsung Exynos/Foundry heritage; NOT a verb. Public sources only (Samsung Foundry Forum / IR / IEEE / Korean tech press / TSMC-Intel earnings); zero NDA / zero Samsung-internal data."
+
 # ── Dependencies ───────────────────────────────────────────
 # All verbs are spec-first at v1.0.0 — no Python or external deps required.
 [dependencies]
@@ -104,24 +118,25 @@ not_scope = [
 ]
 n6_lattice_caveat = "n=6 invariant referenced for ISA/architecture decomposition only (isa_n6, hexa1). Process/packaging/accelerator groups inherit organising convention without independent invariant-fit verification."
 
-# ── Meta-domain closure (terafab envelope, Wave A~D) ──────
+# ── Meta-domain closure (terafab + exynos envelopes, Wave 6~7) ──
 # 메타-도메인 closure 는 verb-level closure 와 *별개의* 회계.
-# Terafab envelope 은 28-verb / 6-group 표면을 변경하지 않고
-# 외피로만 등록되며, 자체 falsifier register (F-TERAFAB-1..10) 와
-# runnable verify_terafab.py / cross_doc_audit.py 한 쌍으로
-# closure 를 선언한다. (verb 카운트는 위 [closure] 가 단일 권위.)
+# 두 envelope (terafab Wave 6, exynos Wave 7) 은 28-verb / 6-group
+# 표면을 변경하지 않고 외피로만 등록되며, 각자 falsifier register
+# (terafab: F-TERAFAB-1..10 / exynos: F-EXYNOS-1..7) 와 runnable
+# verify_*.py harness 로 closure 를 선언한다.
+# (verb 카운트는 위 [closure] 가 단일 권위.)
 [meta_domain_closure]
-envelopes_total = 1                  # terafab
-envelopes_wired = 1                  # has runnable verify_terafab.py
-envelopes_audited = 1                # cross_doc_audit.py passes
-falsifiers_total = 10                # F-TERAFAB-1..10 (7 Mk.I + 3 Mk.II)
-falsifiers_runnable = 10             # all 10 dispatched by verify_terafab.py
-groups_wrapped = 6                   # all 6 hexa-chip groups absorbed
+envelopes_total = 2                  # terafab + exynos
+envelopes_wired = 2                  # both ship runnable verify_*.py
+envelopes_audited = 2                # cross_doc_audit.py extended to audit both
+falsifiers_total = 17                # F-TERAFAB-1..10 (10) + F-EXYNOS-1..7 (7)
+falsifiers_runnable = 17             # all 17 dispatched by verify_terafab.py + verify_exynos.py
+groups_wrapped = 6                   # all 6 hexa-chip groups absorbed by each envelope
 verdict = "SPEC_PLUS_RUNNABLE"
 verb_surface_unchanged = true        # verbs_total/groups_total NOT bumped
 nda_content = false
-extracted_from = "external-research absorption (2026-05-11) — Musk Terafab announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06"
-caveat = "Meta-domain envelope; F-TERAFAB-1..6 are bench-only at Mk.I (data-arrival pending); F-TERAFAB-7 χ² currently weak (p≈0.86), reformulation deferred to Mk.II per terafab/falsifier-mk2-scaffold.md."
+extracted_from = "external-research absorption Wave 6 (Terafab 2026-05-11: Musk announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06) + Wave 7 (Exynos 2026-05-12: Samsung Foundry Forum + IR + IEEE/IEDM + Korean tech press, all public)"
+caveat = "Two meta-domain envelopes; F-TERAFAB-1..6 + F-EXYNOS-1..6 are bench-only at Mk.I (data-arrival pending); both F-7 χ² currently weak (p≈0.86 / p≈0.97), reformulation deferred to Mk.II per each envelope's roadmap. Exynos envelope is brownfield-IDM-heritage comparator to Terafab's greenfield-vertical-megafab claim — complementary, not redundant."
 
 [cost]
 mac_local_default = "$0 (spec-first; no external tooling invoked)"

@@ -109,15 +109,17 @@ Outer wrappers absorbing external observations onto the 6-group surface. Do **no
 | Dir | Type | Closure | Falsifiers | Lines |
 |-----|------|---------|-----------:|------:|
 | `terafab/` | Musk vertically-integrated megafab | `SPEC_PLUS_RUNNABLE` | F-TERAFAB-1..10 | ~5,800 |
-| `exynos/` | Samsung foundry sister-fab heritage | `SPEC_FIRST` | F-EXYNOS-* (pending) | 1 file |
+| `exynos/` | Samsung Korean-fab heritage envelope | `SPEC_PLUS_RUNNABLE` | F-EXYNOS-1..7 | ~1,200 |
 
-**Registration**: `hexa.toml [meta_domains.terafab]` registers Terafab explicitly. `exynos/` predates the meta-domain pattern (2026-04-25 import); its single `exynos.md` is the golden template that `terafab/terafab.md` mirrors (15-section format).
+**Registration**: `hexa.toml [meta_domains.terafab]` (Wave 6) and `[meta_domains.exynos]` (Wave 7) register both envelopes explicitly. Both share the 15-section grammar; `exynos/exynos.md` was upgraded from a single-file placeholder to a full envelope at Wave 7 (mirroring the Terafab pattern: spec doc + verify_*.py + sources.md + CLOSURE.md + README.md + cross-doc audit integration).
 
-**Stake**: T2 envelopes absorb external pressure (industry events, fab announcements) without polluting the canonical T1 surface. Each must own a runnable falsifier register (Terafab achieves this; Exynos does not yet).
+**Stake**: T2 envelopes absorb external pressure (industry events, fab announcements) without polluting the canonical T1 surface. Each owns a runnable falsifier register (Terafab: F-TERAFAB-1..10 / Exynos: F-EXYNOS-1..7). The two envelopes are complementary — Terafab encodes the greenfield-vertical-megafab topology (Musk/Intel announce 2026); Exynos encodes the brownfield-IDM-heritage topology (Samsung 40-year IDM, public sources only, no NDA).
 
-**Action**: extend each envelope's closure independently. Future envelopes (e.g. TSMC, Intel, Rapidus) register under `[meta_domains.<name>]` and inherit the Terafab pattern (15-section + runnable verify + cross-doc audit).
+**Action**: extend each envelope's closure independently. Future envelopes (e.g. TSMC, Intel, Rapidus) register under `[meta_domains.<name>]` and inherit the Terafab+Exynos pattern (15-section + runnable verify + cross-doc audit).
 
 **External SSCB-grade dossier** (Terafab): `~/core/ticket-out/07_outreach/_projects/hexa-chip-terafab.{en,ko}.md` — D-option full-source-coverage outreach dossier (160 sections / 5,800 lines per edition) embedding all 21 `terafab/` files in path-sorted full inclusion. Published to <https://github.com/dancinlab/ticket-out> at commit `9773c35` (2026-05-12). Forbidden-token check + Korean-residue check both PASS.
+
+**External SSCB-grade dossier** (Exynos, Wave 7): `~/core/ticket-out/07_outreach/_projects/hexa-chip-exynos.{en,ko}.md` — D-option full-source-coverage outreach dossier embedding all 5 `exynos/` files in path-sorted full inclusion. Target recipient: Samsung Foundry Forum / Samsung Electronics Memory Business / SK hynix / Korean academia (KAIST/SNU/POSTECH device labs) / IEEE EDS Korea Chapter. Forbidden-token check + Korean-residue check both PASS in `.en.md`.
 
 ---
 
@@ -339,6 +341,7 @@ In rough priority / cost order:
 | `.gitignored` content | `state/` + `.hexa-cache/` + `build/out/` + `__pycache__/` |
 | Closure verdict (T1) | `SPEC_PLUS_RUNNABLE` (v1.0.0) |
 | Closure verdict (T2-terafab) | `SPEC_PLUS_RUNNABLE` (Wave 6.x) |
+| Closure verdict (T2-exynos) | `SPEC_PLUS_RUNNABLE` (Wave 7) |
 | Authority file | `hexa.toml` |
 | Last classified | 2026-05-12 |
 

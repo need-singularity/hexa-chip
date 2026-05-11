@@ -281,9 +281,85 @@ def audit() -> tuple[int, list[str]]:
     else:
         log.append(f"  [OK]   [closure].groups_total = 6")
 
+    # ── Wave 7: extended audit for exynos sister envelope ────────────────
+    EXYNOS  = REPO / "exynos" / "exynos.md"
+    EREADME = REPO / "exynos" / "README.md"
+    log.append("  " + "-" * 68)
+    log.append("  [WAVE 7] exynos sister envelope audit")
+    log.append("  " + "-" * 68)
+
+    exynos_txt  = read(EXYNOS)
+    ereadme_txt = read(EREADME)
+
+    # --- E1. exynos.md must exist ---------------------------------------
+    if not exynos_txt:
+        log.append("  [FAIL] exynos/exynos.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   exynos.md           ({len(exynos_txt):>6} bytes)")
+
+    # --- E2. exynos/README.md must exist -------------------------------
+    if not ereadme_txt:
+        log.append("  [FAIL] exynos/README.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   exynos/README.md    ({len(ereadme_txt):>6} bytes)")
+
+    # --- E3. [meta_domains.exynos].absorbs invariant -------------------
+    e_absorbs = (
+        toml_data.get("meta_domains", {})
+                 .get("exynos", {})
+                 .get("absorbs", [])
+    )
+    if len(e_absorbs) != 6:
+        log.append(f"  [FAIL] [meta_domains.exynos].absorbs len={len(e_absorbs)} (expected 6)")
+        fails += 1
+    elif sorted(e_absorbs) != sorted(EXPECTED_GROUPS):
+        log.append(f"  [FAIL] [meta_domains.exynos].absorbs != expected groups "
+                   f"(got {e_absorbs})")
+        fails += 1
+    else:
+        log.append(f"  [OK]   [meta_domains.exynos].absorbs = {e_absorbs}")
+
+    # --- E4. F-EXYNOS-* falsifier count agreement ----------------------
+    e_count_md = len(set(re.findall(r"F-EXYNOS-\d+", exynos_txt))) if exynos_txt else 0
+    e_count_toml = (
+        toml_data.get("meta_domains", {})
+                 .get("exynos", {})
+                 .get("falsifier_count", -1)
+    )
+    log.append(f"  [INFO] F-EXYNOS unique IDs — exynos.md: {e_count_md}, "
+               f"hexa.toml: {e_count_toml}")
+    if e_count_md != e_count_toml:
+        log.append(f"  [FAIL] F-EXYNOS count mismatch: "
+                   f"exynos.md={e_count_md} vs hexa.toml={e_count_toml}")
+        fails += 1
+    else:
+        log.append(f"  [OK]   F-EXYNOS count matches: {e_count_md} (exynos.md ≡ hexa.toml)")
+
+    # --- E5. meta_domain_closure aggregates correctly ------------------
+    mdc = toml_data.get("meta_domain_closure", {})
+    expected_aggregates = {
+        "envelopes_total": 2,
+        "envelopes_wired": 2,
+        "envelopes_audited": 2,
+        "falsifiers_total": 17,
+        "groups_wrapped": 6,
+        "verdict": "SPEC_PLUS_RUNNABLE",
+        "verb_surface_unchanged": True,
+        "nda_content": False,
+    }
+    for key, expected in expected_aggregates.items():
+        actual = mdc.get(key)
+        if actual != expected:
+            log.append(f"  [FAIL] [meta_domain_closure].{key} = {actual!r} (expected {expected!r})")
+            fails += 1
+        else:
+            log.append(f"  [OK]   [meta_domain_closure].{key} = {actual!r}")
+
     log.append("=" * 72)
     if fails == 0:
-        log.append("  ALL FACTS AGREE — Terafab cross-doc audit PASS")
+        log.append("  ALL FACTS AGREE — Terafab + Exynos cross-doc audit PASS")
     else:
         log.append(f"  {fails} disagreement(s) — see [FAIL] lines above")
     log.append("=" * 72)
