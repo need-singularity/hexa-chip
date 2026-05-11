@@ -5,6 +5,56 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Policy (2026-05-12 — Wave K: n=6 격자 적용 범위 정책)
+
+Documentation-only policy declaration. **Zero verify-script changes, zero
+closure-verdict changes at this wave.** Lands `LATTICE_POLICY.md` at
+repository root articulating the rule:
+
+> n=6 invariant lattice (σ(6)·φ(6) = n·τ(6) = J₂(6) = 24) is hexa-chip's
+> *organising vocabulary*, NOT a design framework that external fabs
+> follow. It is a *tool*, not a *constraint*.
+
+**Scope**:
+- Allowed: native-lattice verbs (`isa_n6`, `hexa1`, `npu_n6`, `gpgpu_n6`,
+  `hexa_ai_native_n6`) — lattice usage stays as self-consistency checks.
+- Prohibited: external envelopes (terafab / exynos / future TSMC / Intel)
+  — do NOT inject lattice anchors (MASTER-IDENTITY, EGYPTIAN-SPLIT,
+  GROUP-COUNT=6 compare, χ²-fit-to-lattice falsifiers) into verify scripts.
+- Prohibited: new domain work — start from the domain's own invariants
+  (physics / accounting / schedule / industry standards); use n=6 only
+  if it naturally emerges, never as the starting constraint.
+
+**Files added**:
+- `LATTICE_POLICY.md` (~270 lines) — full policy: §1 Rule (allowed /
+  prohibited / grey-zone), §2 Why (tautology, over-claim, constraining,
+  χ²-weakness-is-natural), §3 What this wave does NOT do (no code
+  changes), §4 Forward-looking Wave L candidates (terafab/exynos verify
+  cleanup deferred), §5 Operator memo, §6 References.
+- `CATALOG.md` T0 META row added pointing to `LATTICE_POLICY.md` +
+  `SESSION_LOG_2026-05-12.md`.
+
+**What this wave does NOT touch** (raw#10 C3):
+- `terafab/verify_terafab.py` — 6/6 HARD checks unchanged.
+- `exynos/verify_exynos.py` — 7/7 HARD checks unchanged.
+- `chip-verify/cli.hexa` + Wave J runtime promotion (`29a2c14`) — unchanged.
+- `hexa.toml [closure]` + `[meta_domain_closure]` + `[chip_verify_closure]`
+  — all counts unchanged.
+- F-TERAFAB-7 + F-EXYNOS-7 χ² tests — still present. Wave L cleanup
+  candidate per policy §4.
+- SSCB dossiers in `ticket-out` — not rebuilt at this wave.
+
+**Honesty notes**:
+- F-TERAFAB-7 (χ²=0.20, p=0.86) and F-EXYNOS-7 (χ²=0.080, p=0.91) being
+  statistically weak at Mk.I is *natural*: external fabs do not follow
+  n=6. The honest move at Wave L will be to **remove the χ² tests
+  entirely** rather than "reformulate at Mk.II". This policy unblocks
+  that decision but does not execute it.
+- Wave I (TSMC + Intel envelopes) was in-flight at session end and may
+  land verify scripts inheriting the same forced-lattice anchors. Wave L
+  cleanup will sweep all envelopes (terafab + exynos + tsmc + intel)
+  consistently.
+
 ### Added (2026-05-12 — Wave H: Mk.II auto-trigger CI + exynos parallel polling)
 
 GitHub Actions workflows that re-evaluate the Mk.II falsifier pollers on

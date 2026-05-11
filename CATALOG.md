@@ -66,6 +66,8 @@ The authoritative surface. Touching these requires a release-note entry.
 | `install.hexa` | `hx install` entry point | ~2.5 KB |
 | `.gitignore` | `state/` + `.hexa-cache/` + build outputs + Python cache | ~0.3 KB |
 | **`CATALOG.md`** | **this file** — repository taxonomy | — |
+| **`LATTICE_POLICY.md`** | **n=6 격자 적용 범위 정책** (Wave K, 2026-05-12) — 격자는 *제약이 아니라 도구*; 외부 envelope/일반 도메인에 강제 매핑 금지 | ~7 KB |
+| `SESSION_LOG_2026-05-12.md` | Single-day wave timeline (Wave 5..H landed; I+J completed; K policy) | ~7 KB |
 
 **Stake**: T0 defines what hexa-chip *is*. The single source of truth for verb counts is `hexa.toml [closure].verbs_total = 29`, `groups_total = 6`. Any other count anywhere is a typo or stale.
 
