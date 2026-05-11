@@ -62,6 +62,7 @@ All Wave A/B/C/D/E landed. 17 files; aggregate ≈ 5,800 lines.
 | `glossary.md`                 | 177 | 63-entry terminology dictionary (process / packaging / memory / orbital / companies / falsifier-related / n=6) | E |
 | `scenarios.md`                | 500 | 5 future scenarios with falsifier-branch outcomes (S1..S5 Σp=1.00; joint novelty-landing ≤ 25%) | E |
 | `competitive-landscape.md`    | 310 | Global megafab landscape (USA / East Asia / EU / India) + scarce-resource competition | E |
+| `pipeline-stages.md`          | 208 | Reverse view — Terafab-as-frame, decomposed by manufacturing pipeline (T0..T5 + auxiliary); 26 sub-stage honesty matrix → **30.8% truly in-house** | F |
 
 **Out-of-directory cross-link artifacts**:
 
