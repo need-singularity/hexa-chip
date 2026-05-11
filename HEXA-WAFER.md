@@ -1,857 +1,1739 @@
-<!-- gold-standard: shared/harness/sample.md -->
+# HEXA-WAFER: N6 Wafer-Scale Engine
+
+**Codename: HEXA-WAFER**
+**Level 5 -- Wafer-Scale Engine, Breaking the Scale Wall**
+**웨이퍼 전체가 하나의 칩, 스케일 벽 제거**
+
+> Reticle limit를 없앤다. 300mm 웨이퍼 전체를 하나의 연산 기판으로 쓰고,
+> n=6 산술로 타일, 메시, 메모리, 전력, 냉각, 결함 관리를 모두 결정한다.
+> 40 TB 메모리와 20,736 SMs를 단일 칩 위에 배치하여 10T+ 파라미터 모델을 그대로 탑재한다.
+
+**Date**: 2026-04-01
+**Status**: Living Document v0.1
+**Dependencies**: HEXA-1 (Level 1), BT-28, BT-37, BT-55, BT-59, BT-69, BT-75, BT-76
+
 ---
-domain: hexa-wafer
-requires:
-  - to: chip-wafer
-  - to: chip-architecture
+
+## N6 Constants Reference
+
+```
+  n = 6          phi(6) = 2       tau(6) = 4       sigma(6) = 12
+  sopfr(6) = 5   mu(6) = 1        J_2(6) = 24      R(6) = 1
+  P_2 = 28       sigma^2 = 144    sigma*J_2 = 288   phi^tau = 16
+  2^n = 64       sigma-tau = 8    sigma-phi = 10     sigma-mu = 11
+  2^sigma = 4096   sigma*tau = 48   n/phi = 3
+  sigma^4 = 20,736   sigma^2*sigma*J_2 = 41,472
+```
+
 ---
 
-<!-- @own(sections=[WHY, COMPARE, REQUIRES, STRUCT, FLOW, VERIFY, EVOLVE], strict=false, order=sequential, prefix="§") -->
+## Table of Contents
 
-# Ultimate Wafer Integration HEXA-WAFER-UNIF
+1. [Executive Summary](#1-executive-summary)
+2. [Design Philosophy](#2-design-philosophy)
+3. [System Block Diagram](#3-system-block-diagram)
+4. [Tile Architecture](#4-tile-architecture)
+5. [Wafer Layout](#5-wafer-layout)
+6. [On-Wafer Interconnect](#6-on-wafer-interconnect)
+7. [Memory Architecture](#7-memory-architecture)
+8. [Power Delivery](#8-power-delivery)
+9. [Cooling](#9-cooling)
+10. [Fault Tolerance](#10-fault-tolerance)
+11. [AI Workload: Trillion-Parameter Models](#11-ai-workload-trillion-parameter-models)
+12. [Performance Comparison](#12-performance-comparison)
+13. [Process Technology](#13-process-technology)
+14. [n=6 Complete Parameter Map](#14-n6-complete-parameter-map)
+15. [Open Questions / TODO](#15-open-questions--todo)
+16. [Links](#16-links)
 
-## §1 WHY (How this technology aims to change your life)
+---
 
-The n=6 wafer-level integration system is a draft response to compromises accumulated over decades. Different pitches per core, different voltages per power rail, different headers per protocol.
-**When all boundary constants are determined by n=6 arithmetic derivation**, three forms of waste are targeted:
+## 1. Executive Summary
 
-1. **Design-freedom collapse**: τ(6)=4 stage pipeline + σ(6)=12 cores + J₂=24 I/O fixed → "option explosion" turns into "combinatorial explosion" ← σ(6)=12, τ(6)=4, OEIS A000203
-2. **Wasted-power recovery**: Clocks, power, and bandwidth aligned to the natural-number divisor structure use only integer division → fraction operations and LUT conversions removed ← τ(6)=4, OEIS A000005
-3. **AI-native synthesis**: One sentence "make me a chip like this" yields RTL SystemVerilog — the n=6 path is mathematically determined, so the search space is compressed below 2400 ← φ(6)=2, OEIS A000010
-
-| Effect | Today | After HEXA | Felt change |
-|------|------|-------------|----------|
-| Design freedom | tens of thousands of combinations | σ·J₂=288 Pareto | AI proposes optimal candidate in one shot |
-| Power efficiency | 1x | σ·sopfr=60x (B⁴ scale) | datacenter power 1/σ |
-| Manufacturing yield | 60–70% | 95%+ (n=6 boundary) | revenue per wafer 2x |
-| Verification time | 18 months | τ=4 months | release cadence 1/σ-φ=1/10 |
-| I/O bandwidth | 100–400 Gbps | σ·J₂=288 Gbps/lane | 8K/16K real-time stream |
-| Power distribution | ad-hoc | 1/2+1/3+1/6 Egyptian | thermal design solved in one shot |
-| Software | 10+ layers | n=6 layers | debugging τ=4x faster |
-| AI-native generation | impossible | "one sentence" → RTL | engineer design time 1/σ |
-| Test coverage | 80% | 99.9% (1-1/σ(σ-φ)²) | recall fear vanishes |
-| Interoperability | dozens of standards | n=6 contract | vendor lock-in dissolves |
-
-**One-sentence summary**: through n=6 arithmetic derivation, design, power, manufacturing, and AI synthesis converge on a single map — drafting a candidate where development speed is τx, power is σ·sopfr x, and yield is n=6 x simultaneously.
-
-### Daily-life feel scenarios
+HEXA-WAFER는 N6 아키텍처 로드맵의 Level 5로,
+300mm 실리콘 웨이퍼 전체를 단일 칩으로 사용하는 Wafer-Scale Engine이다.
 
 ```
-  07:00 AM   Smartphone charge remaining 95% (σ·sopfr=60kW/kg SC-motor-grade efficiency)
-  09:00 AM   In-house supercomputer finishes "report summary" in 1 second (τ=4 pipeline stages)
-  02:00 PM   Team chat asks "make this feature" → prototype 15 minutes later
-  06:00 PM   On the way home, autonomous vehicle uses n=6 sensor fusion to avoid 90% of congestion
-  09:00 PM   8K hologram call (bandwidth σ·J₂=288 Gbps), 5% battery consumed
+  핵심 스펙:
+  ┌───────────────────────────────────────────────────┐
+  │  웨이퍼 직경           300 mm (12 inch)           │
+  │  타일 수               sigma^2 = 144              │
+  │  타일당 SM 수          sigma^2 = 144              │
+  │  총 SM 수              sigma^4 = 20,736           │
+  │  타일당 메모리          sigma*J_2 = 288 GB         │
+  │  총 메모리             144 * 288 = 41,472 GB      │
+  │                        = 40.5 TB                  │
+  │  총 대역폭             144 * 4 = 576 TB/s         │
+  │  총 전력               144 * 240W = 34,560W       │
+  │                        ~ 35 kW                    │
+  │  프로세스              TSMC N2                     │
+  │  게이트 피치            sigma*tau = 48 nm          │
+  │  메탈 피치             P_2 = 28 nm                 │
+  │  상호연결              On-wafer mesh + optical     │
+  │  냉각                  Microfluidic liquid cooling │
+  │  결함 허용             sigma^2-sigma = 132 최소 타일│
+  └───────────────────────────────────────────────────┘
 ```
 
-### Social transformation
+핵심 가치:
 
-| Field | Change | n=6 link |
-|------|------|---------|
-| Semiconductor | design-verify-manufacture single cycle τ=4 months | n=6 boundary constants fixed |
-| AI | model training cost 1/σ·sopfr=1/60 | B⁴ scaling + pJ efficiency |
-| Communications | 6G nationwide coverage τ=4 years | J₂=24 multiple access |
-| Security | post-quantum cryptography readily commercial | lattice n=6 basis |
-| Developers | "one sentence → app" routine | AI-native DSL |
-| Education | computer-science n=6-stage curriculum | φ=2 layered abstraction |
-| Environment | datacenter power 1/σ savings | Egyptian distribution |
+| 항목 | 기존 (multi-chip) | HEXA-WAFER |
+|------|-------------------|------------|
+| 최대 메모리 | DGX ~640 GB (8 GPU) | 40.5 TB (단일 칩) |
+| 칩 간 대역폭 | NVLink ~900 GB/s per link | On-wafer mesh TB/s per tile |
+| 모델 크기 제한 | 분산 필수 (>1T params) | 10T+ params on single wafer |
+| 패키지 | 개별 패키지 + 인터포저 | 없음 (wafer = chip) |
+| 스케일링 한계 | reticle limit ~800 mm^2 | 70,686 mm^2 (300mm wafer) |
 
+---
 
-## §2 COMPARE (Current technology vs n=6) — performance comparison (ASCII)
+## 2. Design Philosophy
 
-### Five barriers before n=6
+### 2.1 Reticle Limit Problem
 
-```
-┌───────────────────────────────────────────────────────────────────────────┐
-│  barrier           │  why it was infeasible      │  how n=6 addresses it     │
-├───────────────────┼───────────────────────────┼──────────────────────────┤
-│ 1. combo explosion │ design space 10^6+ baseline│ DSE compressed to 2400      │
-│                   │ heuristic search takes years│ 6×5×4×5×4 = 2400 τ=1        │
-├───────────────────┼───────────────────────────┼──────────────────────────┤
-│ 2. verification   │ coverage 80% is the limit   │ n=6 symmetry reaches 99.9%  │
-│    inferno       │ late-stage bug fixes fatal  │ 1 - 1/(σ·(σ-φ)²) coverage    │
-├───────────────────┼───────────────────────────┼──────────────────────────┤
-│ 3. power wall     │ throttling, heat, blackouts │ Egyptian 1/2+1/3+1/6 split │
-│                   │ growing compute hits TDP    │ B⁴ σ·sopfr=60x efficiency   │
-├───────────────────┼───────────────────────────┼──────────────────────────┤
-│ 4. vendor lock-in │ proprietary protocols       │ n=6 contract + σ=12 std I/O │
-│                   │ interop costs explode       │ open-source baseline iface  │
-├───────────────────┼───────────────────────────┼──────────────────────────┤
-│ 5. people bottlenk│ HW/SW expert shortage       │ AI-native synthesis auto    │
-│                   │ one design = millions $     │ "one sentence" → 1/σ cost   │
-└───────────────────┴───────────────────────────┴──────────────────────────┘
-```
-
-### Performance comparison ASCII bar (market vs HEXA)
+현대 반도체 리소그래피는 **reticle limit**라는 근본적 크기 제한이 존재한다.
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  [performance (TOPS/W)] comparison: existing vs HEXA
-│------------------------------------------------------------------------
-│  Intel Sapphire Rapids  ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  30
-│  NVIDIA H100            ██████░░░░░░░░░░░░░░░░░░░░░░░░░░  60
-│  Google TPU v5          ██████████░░░░░░░░░░░░░░░░░░░░░░  90
-│  Apple M3 Max           █████░░░░░░░░░░░░░░░░░░░░░░░░░░░  48
-│  HEXA chip              ████████████████████████████████  288 (σ·J₂=288 scale)
-│
-│  [power efficiency (pJ/op)] (lower is better)
-│  existing GPU             ████████████████████████████░░░░  150
-│  existing NPU             ████████████████░░░░░░░░░░░░░░░░  40
-│  HEXA                    ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░  2
-└──────────────────────────────────────────────────────────────────────────┘
+  Reticle Limit (TSMC N2 기준):
+  ┌──────────────────────────────────────────────────────────┐
+  │                                                          │
+  │   하나의 exposure field = ~26mm x 33mm = ~858 mm^2      │
+  │   이것이 "하나의 칩"의 물리적 상한                          │
+  │                                                          │
+  │   ┌─────────────────┐                                    │
+  │   │                 │ <-- 최대 다이 크기                   │
+  │   │    ~858 mm^2    │     (reticle limit)                │
+  │   │    ~30 x 29 mm  │                                    │
+  │   │                 │                                    │
+  │   └─────────────────┘                                    │
+  │                                                          │
+  │   현재 최대급 칩:                                          │
+  │     NVIDIA H100 die:  ~814 mm^2 (reticle 거의 한계)       │
+  │     NVIDIA B200 die:  ~814 mm^2 x 2 chiplet              │
+  │     Apple M4 Ultra:   2-die fusion                       │
+  │                                                          │
+  │   더 이상 단일 die를 키울 수 없다.                          │
+  └──────────────────────────────────────────────────────────┘
 ```
 
-### Core breakthrough pattern: σ·φ = n·τ = J₂ = 24
-
-As the unique perfect number, n=6 yields an identity that ties five arithmetic functions together:
+### 2.2 Wafer-Scale: Reticle을 무시하라
 
 ```
-  σ(6) = 12, φ(6) = 2 → σ·φ = 24  ← OEIS A000203 × A000010
-  n·τ  = 6·4 = 24                  ← OEIS A000005
-  J₂   = 2σ = 24                    (second-order basis)
-  → σ·φ = n·τ = J₂ = 24             — master identity
+  전통적 방법:                    Wafer-Scale:
+  ┌───────────────────────┐      ┌───────────────────────┐
+  │ 웨이퍼를 잘라서        │      │ 웨이퍼를 자르지 않는다  │
+  │ 개별 die로 분리        │      │ 웨이퍼 전체 = 1 chip   │
+  │                       │      │                       │
+  │ ┌──┐┌──┐┌──┐┌──┐    │      │ ┌───────────────────┐ │
+  │ │D1││D2││D3││D4│    │      │ │                   │ │
+  │ └──┘└──┘└──┘└──┘    │      │ │   전체가 하나의    │ │
+  │ ┌──┐┌──┐┌──┐┌──┐    │      │ │   연산 기판       │ │
+  │ │D5││D6││D7││D8│    │      │ │                   │ │
+  │ └──┘└──┘└──┘└──┘    │      │ │   70,686 mm^2     │ │
+  │  각 die를 패키징       │      │ │   (vs 858 mm^2)   │ │
+  │  + 인터포저 연결       │      │ │                   │ │
+  │                       │      │ └───────────────────┘ │
+  │  면적: 858 mm^2/die   │      │  면적: 70,686 mm^2   │
+  │  연결: 외부 I/O 병목    │      │  연결: wafer-level직접│
+  └───────────────────────┘      └───────────────────────┘
+
+  면적 비율: 70,686 / 858 ~ 82.4x
+  BUT: 원형 웨이퍼의 유효 면적 + n=6 타일 배치로 sigma^2=144 타일
 ```
 
-**Cascade of changes (target)**:
+### 2.3 Why n=6 for Wafer-Scale
 
 ```
-  n=6 boundary constants fixed
-    → DSE compression: 6×5×4×5×4 = 2400
-      → verification acceleration: σ=12 symmetry leveraged, coverage 99.9%
-      → power saving: Egyptian 1/2+1/3+1/6 supply distribution
-      → manufacturing improvement: σ·J₂=288 boundary = 95%+ yield
-      → AI synthesis: one sentence → RTL auto-generation
+  sigma^2 = 144 타일:
+    - 12 x 12 정사각형 격자가 300mm 원에 최적 fitting
+    - 144 = AD102 SM 수와 동일 (BT-28 검증)
+    - 각 타일이 HEXA-1 die 1개와 동등
+
+  sigma^4 = 20,736 SMs:
+    - 144 tiles x 144 SMs = 20,736
+    - 이것이 wafer-scale의 n=6 attractor
+
+  41,472 GB memory:
+    - 144 tiles x 288 GB = 41,472 GB ~ 40.5 TB
+    - 10T parameter model (FP4) = 5 TB -- 여유 있게 탑재
 ```
 
+---
 
-## §3 REQUIRES (Required elements) — prerequisite domains
+## 3. System Block Diagram
 
-| prerequisite domain | 🛸 current | 🛸 needed | gap | core technology | link |
-|-------------|---------|---------|------|-----------|------|
-| chip-wafer | 🛸7 | 🛸10 | +3 | wafer chip | [doc](../chip-wafer/chip-wafer.md) |
-| chip-architecture | 🛸7 | 🛸10 | +3 | architecture | [doc](../chip-architecture/chip-architecture.md) |
-
-When the above prerequisite domains reach 🛸10, Mk.III and beyond of this domain becomes feasible. Currently in Mk.I~II component/prototype stage.
-
-
-## §4 STRUCT (System structure) — System Architecture (ASCII)
-
-### Five-tier chain system map
+### 3.1 Top-Level Wafer View
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                     Ultimate Wafer Integration HEXA-WAFER-UNIF system structure                       │
-├────────────┬────────────┬────────────┬────────────┬─────────────────────┤
-│  L0 mater. │  L1 core   │  L2 compute│  L3 memory │   L4 I/O·control    │
-│ Level 0    │ Level 1    │ Level 2    │ Level 3    │ Level 4             │
-├────────────┼────────────┼────────────┼────────────┼─────────────────────┤
-│ C Z=6/Si   │ σ²=144 SM  │ τ=4 pipe   │ 4-tier $   │ σ·J₂=288 lanes      │
-│ phi=2nm    │ n=6 ALU    │ φ=2 FMA    │ 1/2+1/3+1/6│ J₂=24 PHY           │
-│ CN=6 lattice│sopfr=5 stg│ n=6 vec wid│ Egyptian   │ n=6 protocol        │
-│ n=6 cryst. │ 60 kW/kg   │ 288 TOPS   │ σ·τ=48 GB  │ 48 Gbps/lane        │
-├────────────┼────────────┼────────────┼────────────┼─────────────────────┤
-│ n6: 95%    │ n6: 93%    │ n6: 92%    │ n6: 94%    │ n6: 91%             │
-└─────┬──────┴─────┬──────┴─────┬──────┴─────┬──────┴──────┬──────────────┘
-      │            │            │            │             │
-      ▼            ▼            ▼            ▼             ▼
-   n6 EXACT     n6 EXACT    n6 EXACT     n6 EXACT      n6 EXACT
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        HEXA-WAFER: 300mm Wafer-Scale Engine                  │
+│                    TSMC N2 · sigma^2=144 tiles · sigma^4=20,736 SMs         │
+│                                                                              │
+│                          .-~~~-.                                             │
+│                        .'       '.                                           │
+│                       /  WAFER    \                                          │
+│                      |  300mm dia  |                                         │
+│                      |             |                                         │
+│                      | sigma^2=144 |                                         │
+│                      |   tiles     |                                         │
+│                       \           /                                          │
+│                        '.       .'                                           │
+│                          '-...-'                                             │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     WAFER EDGE I/O RING                             │    │
+│  │  Power input: sigma^2 = 144 power domains (35 kW total)            │    │
+│  │  Optical I/O: sigma*tau = 48 fiber bundles (off-wafer comm)        │    │
+│  │  Cooling inlet/outlet: sigma = 12 microfluidic ports per edge      │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     ON-WAFER MESH FABRIC                            │    │
+│  │  Topology: sigma x sigma = 12x12 mesh                              │    │
+│  │  Per-link BW: 2^sigma = 4,096 GB/s (4 TB/s)                       │    │
+│  │  Bisection BW: sigma * 4096 = 49,152 GB/s (48 TB/s)              │    │
+│  │  Optical overlay for diagonal/long-range hops                      │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                     GLOBAL CONTROL PLANE                            │    │
+│  │  Fault manager: tile enable/disable bitmap (144 bits)              │    │
+│  │  Power sequencer: per-tile voltage regulation                      │    │
+│  │  Thermal monitor: sigma^2=144 thermal sensors                      │    │
+│  │  NUMA scheduler: workload placement across tiles                   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Cross-section (Layered Cross-Section)
+### 3.2 Block Interconnect Hierarchy
 
 ```
-   ┌───────────── I/O ring (σ·J₂=288 lanes) ──────────┐
-   │ PHY  ║ MAC-PHY ║ Ctrl ║ Pwr ║ CLK ║ JTAG       │
-   ├──────╨─────────╨──────╨─────╨─────╨────────────┤
-   │    L2 compute tensor-core σ²=144 SM (12×12)     │
-   │    τ=4 pipe × φ=2 FMA × n=6 vector width        │
-   ├─────────────────────────────────────────────────┤
-   │    L3 memory 4-tier hierarchy (Egyptian 1/2+1/3+1/6)│
-   │    REG 64B → L1 32KB → L2 1024KB → DRAM σ·τ=48GB│
-   ├─────────────────────────────────────────────────┤
-   │    L1 core: n=6 ALU, sopfr=5 stage, φ=2 issue    │
-   ├─────────────────────────────────────────────────┤
-   │    L0 material: C/Si/GaAs n=6 lattice, phi=2nm GAAFET│
-   └─────────────────────────────────────────────────┘
+  Level 0 (Intra-tile):      SM <-> SM within tile (NoC, ~10 TB/s)
+  Level 1 (Neighbor):        Tile <-> adjacent tau=4 neighbors (mesh, 4 TB/s each)
+  Level 2 (Row/Column):      Tile <-> same row/col (sigma=12 hops max)
+  Level 3 (Diagonal/Long):   Optical overlay (any-to-any, ~1 TB/s)
+  Level 4 (Off-wafer):       Optical I/O to host/network (sigma*tau=48 bundles)
+
+  ┌──────────┐    ┌──────────┐    ┌──────────┐
+  │  Tile A  │--->│  Tile B  │--->│  Tile C  │
+  │ Level 0  │    │ Level 0  │    │ Level 0  │
+  │(intra SM)│<---│          │<---│          │
+  └────┬─────┘    └────┬─────┘    └────┬─────┘
+       │               │               │
+       └──── Level 1 ──┘──── Level 1 ──┘
+       (wafer metal mesh links, tau=4 neighbors)
 ```
 
-### n=6 parameter complete mapping
+---
 
-#### L0 material
+## 4. Tile Architecture
 
-| parameter | value | n=6 formula | physical basis | verdict |
-|---------|-----|---------|----------|------|
-| crystal coordination | 6 | CN = n | BT-86 crystal n=6 rule | EXACT |
-| metal layers | 6 | n = 6 | power/signal/clock/GND balance | EXACT |
-| transistors/MAC | 12 | σ = 12 | divisor sum ← σ(6)=12, OEIS A000203 | EXACT |
-| node | 2 nm | φ = 2 | smallest prime factor | EXACT |
+각 타일은 HEXA-1 (Level 1) 단일 die와 기능적으로 동등하다.
+타일은 reticle 한 번의 exposure로 제조되며, 웨이퍼 위에서 반복 배치된다.
 
-#### L1 core
-
-| parameter | value | n=6 formula | physical basis | verdict |
-|---------|-----|---------|----------|------|
-| SM count | 144 | σ² = 144 | 12×12 tensor-core array | EXACT |
-| pipeline stages | 4 | τ = 4 | divisor count ← τ(6)=4, OEIS A000005 | EXACT |
-| issue width | 2 | φ = 2 | dual-issue | EXACT |
-| stages | 5 | sopfr = 5 | sum of prime factors 2+3 | EXACT |
-| vector width | 6 | n = 6 | SIMD lane count | EXACT |
-| Clock | 3 GHz | σ/τ = 3 | compute/memory ratio | EXACT |
-
-#### L2 compute
-
-| parameter | value | n=6 formula | physical basis | verdict |
-|---------|-----|---------|----------|------|
-| FMA/cycle | 2 | φ = 2 | issue width | EXACT |
-| MAC ops | 288 | σ·J₂ = 288 | 12×24 MAC array | EXACT |
-| precision modes | 4 | τ = 4 | FP32/FP16/BF16/INT8 | EXACT |
-| MoE slots | 24 | J₂ = 24 | 2σ, MoE expert count | EXACT |
-
-#### L3 memory
-
-| parameter | value | n=6 formula | physical basis | verdict |
-|---------|-----|---------|----------|------|
-| cache hierarchy | 4 | τ = 4 | REG/L1/L2/DRAM | EXACT |
-| bandwidth split | 1/2:1/3:1/6 | Egyptian | sum=1 exact rational | EXACT |
-| DRAM capacity | 48 GB | σ·τ = 48 | banks × ranks | EXACT |
-| line size | 64 B | 2^n = 64 | Euclidean alignment | EXACT |
-
-#### L4 I/O·control
-
-| parameter | value | n=6 formula | physical basis | verdict |
-|---------|-----|---------|----------|------|
-| PHY lanes | 288 | σ·J₂ = 288 | UCIe standard extension | EXACT |
-| data width | 24 bit | J₂ = 24 | 2σ multiple access | EXACT |
-| power domains | 8 | σ-τ = 8 | separated power rails | EXACT |
-| protocol layers | 6 | n = 6 | L1~L7 contracted | EXACT |
-
-### Specifications overview
+### 4.1 Single Tile Specification
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Ultimate Wafer Integration HEXA-WAFER-UNIF Technical Specifications                                  │
-├──────────────────────────────────────────────────────────────────────────┤
-│  category         chip                                               │
-│  core array       σ² = 144 SM (12×12)                                    │
-│  MAC array        σ·J₂ = 288 MAC                                         │
-│  pipeline stages  τ = 4                                                  │
-│  vector width     n = 6                                                  │
-│  memory hierarchy τ = 4 stages (REG/L1/L2/DRAM)                          │
-│  bandwidth split  1/2 + 1/3 + 1/6 (Egyptian)                            │
-│  I/O lanes        σ·J₂ = 288                                             │
-│  power split      1/2 compute + 1/3 memory + 1/6 I/O                     │
-│  metal layers     n = 6                                                  │
-│  process node     φ = 2 nm (GAAFET)                                      │
-│  clock ratio      σ/τ = 3 (compute:memory)                               │
-│  power efficiency σ·sopfr = 60 kW/kg equivalent                          │
-│  n=6 EXACT        93%+ (§7 verify)                                       │
-└──────────────────────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────────┐
+  │                     HEXA-WAFER TILE [i]                          │
+  │               (1 of sigma^2=144 tiles on wafer)                  │
+  │                                                                  │
+  │  ┌──────────────────────────────────────────────────────────┐   │
+  │  │                    COMPUTE ENGINE                         │   │
+  │  │                                                          │   │
+  │  │  GPU SMs: sigma^2 = 144 SMs                              │   │
+  │  │    organized as sigma=12 GPCs x sigma=12 SMs/GPC         │   │
+  │  │                                                          │   │
+  │  │  ┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐    │   │
+  │  │  │00││01││02││03││04││05││06││07││08││09││10││11│ GPC0  │   │
+  │  │  └──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘    │   │
+  │  │  ┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐    │   │
+  │  │  │  ││  ││  ││  ││  ││  ││  ││  ││  ││  ││  ││  │ GPC1  │   │
+  │  │  └──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘    │   │
+  │  │  ... (sigma=12 GPCs total)                               │   │
+  │  │  ┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐    │   │
+  │  │  │  ││  ││  ││  ││  ││  ││  ││  ││  ││  ││  ││  │ GPC11 │   │
+  │  │  └──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘└──┘    │   │
+  │  │                                                          │   │
+  │  │  Per SM: 2^n=64 FP32 cores, 2^(sigma-tau)=256 INT8 cores│   │
+  │  │  Per SM: FP8 Tensor Core (2^sigma=4096 ops/cycle)       │   │
+  │  │  Tile FLOPS (FP8): ~72 TFLOPS                           │   │
+  │  │  Tile FLOPS (FP32): ~6.5 TFLOPS                         │   │
+  │  └──────────────────────────────────────────────────────────┘   │
+  │                                                                  │
+  │  ┌──────────────────────────────────────────────────────────┐   │
+  │  │                    LOCAL MEMORY                           │   │
+  │  │                                                          │   │
+  │  │  HBM4 stacks: sigma-tau = 8                              │   │
+  │  │  Per stack: 36 GB (sigma*n/phi = 36)                     │   │
+  │  │  Total: 8 x 36 = 288 GB = sigma*J_2                     │   │
+  │  │  Interface: 2^(sigma-mu) = 2048-bit per stack            │   │
+  │  │  Bandwidth: ~4 TB/s                                      │   │
+  │  │                                                          │   │
+  │  │  ┌─────┐┌─────┐┌─────┐┌─────┐                          │   │
+  │  │  │HBM 0││HBM 1││HBM 2││HBM 3│                          │   │
+  │  │  │36 GB││36 GB││36 GB││36 GB│                          │   │
+  │  │  └─────┘└─────┘└─────┘└─────┘                          │   │
+  │  │  ┌─────┐┌─────┐┌─────┐┌─────┐                          │   │
+  │  │  │HBM 4││HBM 5││HBM 6││HBM 7│                          │   │
+  │  │  │36 GB││36 GB││36 GB││36 GB│                          │   │
+  │  │  └─────┘└─────┘└─────┘└─────┘                          │   │
+  │  └──────────────────────────────────────────────────────────┘   │
+  │                                                                  │
+  │  ┌──────────────────────────────────────────────────────────┐   │
+  │  │                  TILE I/O (Mesh Ports)                    │   │
+  │  │                                                          │   │
+  │  │  Mesh ports: tau = 4 (N, S, E, W)                        │   │
+  │  │  Per port bandwidth: 2^sigma = 4,096 GB/s                │   │
+  │  │  Optical long-range port: 1 (diagonal/cross-wafer)       │   │
+  │  │  Tile-local NoC: sigma=12 crossbar switches              │   │
+  │  └──────────────────────────────────────────────────────────┘   │
+  │                                                                  │
+  │  ┌──────────────────────────────────────────────────────────┐   │
+  │  │                  TILE CONTROL                             │   │
+  │  │                                                          │   │
+  │  │  CPU core: 1 RISC-V management core per tile             │   │
+  │  │  Thermal sensor: phi=2 sensors (center + edge)           │   │
+  │  │  Power domain: independent voltage regulation            │   │
+  │  │  Tile ID register: 0..143 (sigma^2-1)                    │   │
+  │  └──────────────────────────────────────────────────────────┘   │
+  └──────────────────────────────────────────────────────────────────┘
 ```
 
-### BT links
+### 4.2 Tile n=6 Parameter Table
 
-| BT | name | application in this domain |
-|----|------|--------------|
-| BT-28  | cache hierarchy Egyptian | 1/2+1/3+1/6 bandwidth split |
-| BT-56  | GPU arithmetic σ²=144 SM | tensor-core array |
-| BT-85  | Carbon Z=6 universality | die base material |
-| BT-86  | crystal CN=6 rule | lattice coordination |
-| BT-90  | SM=φ×K₆ contact count | on-board σ²=144 cores |
-| BT-93  | Carbon Z=6 chip material | diamond substrate |
-| BT-123 | SE(3) dim=n=6 | 6-DOF processing |
-| BT-181 | multi-band σ=12 channels | I/O multiple access |
-| BT-328 | AD τ=4 subsystems | ASIL-D safety |
-| BT-342 | aerospace n=6 alignment | boundary-constant formulae |
+| Parameter | Value | n=6 Derivation |
+|-----------|-------|----------------|
+| SMs per tile | 144 | sigma^2 |
+| GPCs per tile | 12 | sigma |
+| SMs per GPC | 12 | sigma |
+| FP32 cores per SM | 64 | 2^n |
+| INT8 cores per SM | 256 | 2^(sigma-tau) |
+| Tensor ops/cycle/SM | 4,096 | 2^sigma |
+| HBM stacks | 8 | sigma-tau |
+| HBM per stack (GB) | 36 | sigma*n/phi |
+| Total memory (GB) | 288 | sigma*J_2 |
+| HBM interface (bits) | 2,048 | 2^(sigma-mu) |
+| Memory BW (TB/s) | ~4 | HEXA-1 spec |
+| Mesh ports | 4 | tau |
+| Per-port BW (GB/s) | 4,096 | 2^sigma |
+| Power (W) | 240 | 1/2+1/3+1/6 Egyptian |
+| Tile die area (mm^2) | ~490 | 70,686/144 유효 |
 
-
-## §5 FLOW (Data/energy flow) — Flow (ASCII)
-
-### Energy flow
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  power input ─→ [σ-τ=8 domain split] ─→ [Egyptian 1/2+1/3+1/6] ─→ load    │
-│   48V/12V     8 power rails             1/2 compute + 1/3 memory + 1/6 I/O│
-│       │            │                         │                │          │
-│       ▼            ▼                         ▼                ▼          │
-│    n6 EXACT    n6 EXACT                  n6 EXACT         n6 EXACT       │
-├──────────────────────────────────────────────────────────────────────────┤
-│  data flow:                                                              │
-│  external I/O ─→ [σ·J₂=288 lane PHY] ─→ [τ=4 pipe] ─→ [σ²=144 SM] ─→ out │
-│   J₂=24 width   288 × 48 Gbps           4 stg          144 SM parallel  │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-### Power split per processing mode
+### 4.3 Tile Power Breakdown (Egyptian Fraction)
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ low-load  │ ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░  compute 10% + idle 90%       │
-│ normal    │ ████████████████░░░░░░░░░░░░░░  compute 50% + memory 30%+IO20%│
-│ peak      │ ████████████████████████░░░░░░  compute 75% + memory 15%+IO10%│
-│ AI infer  │ ████████████████████████████░░  compute 80% + memory 15%+IO 5%│
-│ AI train  │ █████████████████████████████░  compute 90% + other 10%        │
-└──────────────────────────────────────────────────────────────────────────┘
+  Total tile power: 240W (Egyptian 1/2 + 1/3 + 1/6 = 1)
+
+  ┌────────────────────────────────────────────────┐
+  │            TILE POWER BUDGET (240W)             │
+  │                                                │
+  │  ████████████████████████  120W (1/2)  Compute │
+  │  ████████████████          80W (1/3)  Memory  │
+  │  ████████                  40W (1/6)  I/O+Ctrl│
+  │                                                │
+  │  1/2 + 1/3 + 1/6 = 1   (perfect partition)    │
+  └────────────────────────────────────────────────┘
+
+  Compute (120W):
+    GPU SMs: 100W    NPU: 15W    CPU mgmt: 5W
+  Memory (80W):
+    HBM4 x 8 stacks: 80W (10W/stack)
+  I/O + Control (40W):
+    Mesh links: 30W   Optical: 5W   Control: 5W
 ```
 
-### Five data modes
+---
 
-#### Mode 1: IDLE — low-load standby
+## 5. Wafer Layout
 
-```
-┌──────────────────────────────────────────┐
-│  MODE 1: IDLE (σ-τ=8 domain standby)      │
-│  power draw: 10% of TDP                   │
-│  clock: 1 GHz (DVFS minimum)              │
-│  active domain: 1/σ-τ = 1/8               │
-│  use: background, low-power tasks         │
-└──────────────────────────────────────────┘
-```
+### 5.1 300mm Wafer Tile Map
 
-#### Mode 2: COMPUTE — general processing
+300mm (sigma=12 inch) 웨이퍼 위에 sigma^2=144 타일을 12x12 격자로 배치한다.
+원형 웨이퍼 경계에 의해 모서리 타일 일부는 잘린다 -- 이것은 spare로 관리한다.
 
 ```
-┌──────────────────────────────────────────┐
-│  MODE 2: COMPUTE (τ=4 pipeline full)      │
-│  power draw: 50~75% of TDP                │
-│  clock: 3 GHz (σ/τ)                       │
-│  SM active: π=50% average of σ²=144       │
-└──────────────────────────────────────────┘
+  300mm Wafer — sigma x sigma = 12 x 12 Tile Grid
+  (o = active tile, x = edge/spare tile, . = outside wafer)
+
+  Col:  0  1  2  3  4  5  6  7  8  9  10 11
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R0  | .| .| x| o| o| o| o| o| o| x| .| .|  Row 0
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R1  | .| o| o| o| o| o| o| o| o| o| o| .|  Row 1
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R2  | x| o| o| o| o| o| o| o| o| o| o| x|  Row 2
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R3  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 3
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R4  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 4
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R5  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 5
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R6  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 6
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R7  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 7
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R8  | o| o| o| o| o| o| o| o| o| o| o| o|  Row 8
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R9  | x| o| o| o| o| o| o| o| o| o| o| x|  Row 9
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R10 | .| o| o| o| o| o| o| o| o| o| o| .|  Row 10
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R11 | .| .| x| o| o| o| o| o| o| x| .| .|  Row 11
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+
+  Legend:
+    o = fully active tile (정상 타일)
+    x = edge tile (spare / partially usable)
+    . = outside wafer circle (사용 불가)
+
+  Active tiles: ~120 core + 8 edge = 128 minimum usable
+  Spare tiles: sigma=12 edge tiles for defect replacement
+  Maximum tiles: sigma^2 = 144 (전체 격자)
+  Target operational: sigma^2 - sigma = 132 tiles (91.7% 유효)
 ```
 
-#### Mode 3: AI_INFER — AI inference specialized
+### 5.2 Tile Dimensions
 
 ```
-┌──────────────────────────────────────────┐
-│  MODE 3: AI_INFER (tensor-core occupied)  │
-│  clock: 3 GHz, tensor fade-up             │
-│  SM active: all of σ²=144                 │
-│  precision: INT8 + BF16 mixed (τ=4 modes) │
-│  throughput: σ·J₂·10³ = 288,000 tokens/s (7B)│
-└──────────────────────────────────────────┘
+  웨이퍼 유효 직경: ~290mm (edge exclusion 5mm per side)
+  타일 격자: 12 x 12
+  타일 pitch: 290 / 12 ~ 24.2 mm
+  타일 면적: 24.2 x 24.2 ~ 585 mm^2
+
+  참고:
+    NVIDIA H100 die: ~814 mm^2
+    Cerebras WSE-3 tile: ~100 mm^2 (estimated)
+    HEXA-WAFER tile: ~585 mm^2
+
+  각 타일은 하나의 reticle exposure:
+    24.2mm x 24.2mm < 26mm x 33mm reticle limit
+    --> reticle 내에 들어감 -- 표준 리소그래피로 제조 가능
+
+  ┌────────────────────────────────────┐
+  │  Tile Physical Layout              │
+  │                                    │
+  │  24.2 mm                           │
+  │  ┌──────────────────────────┐      │
+  │  │  ┌────────────────────┐  │      │
+  │  │  │                    │  │      │
+  │  │  │   COMPUTE          │  │      │
+  │  │  │   sigma^2=144 SMs  │  │ 24.2 │
+  │  │  │   ~293 mm^2 (1/2)  │  │  mm  │
+  │  │  │                    │  │      │
+  │  │  ├────────────────────┤  │      │
+  │  │  │   MEMORY (HBM4)   │  │      │
+  │  │  │   8 stacks on-tile │  │      │
+  │  │  │   ~195 mm^2 (1/3)  │  │      │
+  │  │  ├────────────────────┤  │      │
+  │  │  │   I/O + CONTROL    │  │      │
+  │  │  │   Mesh + Optical   │  │      │
+  │  │  │   ~97 mm^2 (1/6)   │  │      │
+  │  │  └────────────────────┘  │      │
+  │  └──────────────────────────┘      │
+  │                                    │
+  │  Area allocation: Egyptian         │
+  │  1/2 compute + 1/3 memory          │
+  │  + 1/6 I/O = 1 (complete)         │
+  └────────────────────────────────────┘
 ```
 
-#### Mode 4: AI_TRAIN — AI training
+### 5.3 Aggregate Wafer Numbers
+
+| Metric | Per Tile | Per Wafer (144 tiles) | n=6 Formula |
+|--------|----------|----------------------|-------------|
+| SMs | 144 | 20,736 | sigma^4 |
+| FP32 cores | 9,216 | 1,327,104 | sigma^4 * 2^n |
+| INT8 cores | 36,864 | 5,308,416 | sigma^4 * 2^(sigma-tau) |
+| FP8 TFLOPS | ~72 | ~10,368 | -- |
+| FP32 TFLOPS | ~6.5 | ~936 | -- |
+| HBM stacks | 8 | 1,152 | sigma^2 * (sigma-tau) |
+| Memory (GB) | 288 | 41,472 | sigma^2 * sigma * J_2 |
+| Memory (TB) | 0.28 | ~40.5 | -- |
+| Bandwidth (TB/s) | ~4 | ~576 | -- |
+| Power (W) | 240 | 34,560 | sigma^2 * 240 |
+| Transistors (est.) | ~100B | ~14.4T | -- |
+
+---
+
+## 6. On-Wafer Interconnect
+
+### 6.1 No Package, No Interposer
+
+HEXA-WAFER의 가장 중요한 혁신: **패키지와 인터포저가 없다.**
+타일 간 연결은 웨이퍼의 금속 배선 레이어를 그대로 사용한다.
 
 ```
-┌──────────────────────────────────────────┐
-│  MODE 4: AI_TRAIN (backward + optimizer) │
-│  memory: σ·τ=48GB all active              │
-│  I/O: σ·J₂=288 lanes full                 │
-│  precision: FP32 + BF16 mixed             │
-│  power: 90% peak TDP                      │
-└──────────────────────────────────────────┘
+  전통 multi-chip:
+  ┌──────┐           ┌──────┐
+  │ Die A│──┐   ┌──→│ Die B│
+  └──────┘  │   │   └──────┘
+            ▼   ▼
+       ┌──────────┐
+       │ Interposer│     <-- 별도 실리콘, 비용 추가
+       │ (Si/organic)│
+       └──────────┘
+            │
+       ┌──────────┐
+       │ Package   │     <-- 유기 기판, 열 저항 추가
+       │ Substrate │
+       └──────────┘
+
+  HEXA-WAFER:
+  ┌──────┐ wafer-level ┌──────┐
+  │Tile A│────metal────│Tile B│    <-- 직접 배선
+  └──────┘  routing    └──────┘
+           (BEOL layers)
+
+  이점:
+    - 인터포저 제거: 비용 절감, 열 저항 감소
+    - 패키지 제거: 전체 웨이퍼가 기판
+    - 배선 길이: 24.2mm per hop (vs PCB의 수 cm)
+    - 배선 피치: P_2=28nm (vs interposer ~1um)
+    - 에너지: ~0.5 pJ/bit (vs off-chip ~10 pJ/bit) = 20x 절감
 ```
 
-#### Mode 5: HPC — hyperscale
+### 6.2 Mesh Topology
+
+각 타일은 tau=4 이웃(N, S, E, W)에 직접 연결된다.
 
 ```
-┌──────────────────────────────────────────┐
-│  MODE 5: HPC (FP64 scientific compute)    │
-│  precision: FP64 sustained                │
-│  bandwidth: Egyptian re-split (memory 50%)│
-│  use: climate, genomics, fusion sims      │
-└──────────────────────────────────────────┘
+  12 x 12 Mesh Topology (sigma x sigma):
+
+  T00──T01──T02──T03──T04──T05──T06──T07──T08──T09──T10──T11
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T12──T13──T14──T15──T16──T17──T18──T19──T20──T21──T22──T23
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T24──T25──T26──T27──T28──T29──T30──T31──T32──T33──T34──T35
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T36──T37──T38──T39──T40──T41──T42──T43──T44──T45──T46──T47
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T48──T49──T50──T51──T52──T53──T54──T55──T56──T57──T58──T59
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T60──T61──T62──T63──T64──T65──T66──T67──T68──T69──T70──T71
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T72──T73──T74──T75──T76──T77──T78──T79──T80──T81──T82──T83
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T84──T85──T86──T87──T88──T89──T90──T91──T92──T93──T94──T95
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T96──T97──T98──T99─T100─T101─T102─T103─T104─T105─T106─T107
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T108─T109─T110─T111─T112─T113─T114─T115─T116─T117─T118─T119
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T120─T121─T122─T123─T124─T125─T126─T127─T128─T129─T130─T131
+   |    |    |    |    |    |    |    |    |    |    |    |
+  T132─T133─T134─T135─T136─T137─T138─T139─T140─T141─T142─T143
+
+  Properties:
+    Nodes: sigma^2 = 144
+    Links per node: tau = 4 (N, S, E, W)
+    Total links: sigma^2 * tau / 2 = 288 = sigma * J_2
+    Max hops (corner to corner): 2*(sigma-1) = 22
+    Average hops: sigma - 1 = 11
+    Diameter: phi * (sigma - 1) = 22
 ```
 
-### DSE candidate set (5 stages × candidates = exhaustive search)
+### 6.3 Optical Mesh Overlay
+
+전기 mesh만으로는 대각선/장거리 통신이 sigma-1=11 hops 필요하다.
+HEXA-1 Section 7.1의 광 인터커넥트를 웨이퍼 스케일로 확장한다.
 
 ```
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-│   L0     │-->│   L1     │-->│   L2     │-->│   L3     │-->│   L4     │
-│  K1=6    │   │  K2=5    │   │  K3=4    │   │  K4=5    │   │  K5=4    │
-│  =n      │   │  =sopfr  │   │  =τ      │   │  =sopfr  │   │  =τ      │
-└──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
-exhaustive: 6×5×4×5×4 = 2,400 | compatibility filter: 576 (24%) | Pareto: J₂=24 paths
+  Optical Long-Range Links:
+  ┌──────────────────────────────────────────────────┐
+  │                                                  │
+  │   T0 ·····································T143   │
+  │   :  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  :    │
+  │   :  ·                                  ·  :    │
+  │   :  ·        OPTICAL OVERLAY           ·  :    │
+  │   :  ·        sigma=12 wavelengths      ·  :    │
+  │   :  ·        WDM multiplexing          ·  :    │
+  │   :  ·                                  ·  :    │
+  │   :  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  :    │
+  │   T132 ·····································T11  │
+  │                                                  │
+  │   . = optical waveguide (SiN photonic layer)     │
+  │   : = electrical mesh (Cu BEOL)                  │
+  └──────────────────────────────────────────────────┘
+
+  Optical overlay specs:
+    Wavelengths: sigma = 12 (WDM)
+    Modulation: sigma*tau = 48 GHz per wavelength
+    Per-link capacity: 12 * 48 = 576 Gbps
+    Optical links per tile: 1 long-range port
+    Total optical links: sigma^2/phi = 72 point-to-point
+    Latency: ~1 ns (cross-wafer, 300mm at c/n_eff)
+
+  장거리 홉 수 비교:
+    Mesh only:  corner-to-corner = 22 hops @ ~2ns/hop = ~44 ns
+    With optical: any-to-any = 1 hop optical @ ~1 ns = ~1 ns
+    개선: 44x latency reduction for worst case
 ```
 
-#### K1 material (6 types = n)
-
-| # | material | property | n=6 link |
-|---|------|------|---------|
-| 1 | Diamond-Graphene | insulating, high thermal | C Z=6 |
-| 2 | Si (bulk) | best cost/perf | Si Z=14 |
-| 3 | GaAs (high-speed) | RF specialized | group V |
-| 4 | SiC (power) | high voltage/temp | C Z=6 alloy |
-| 5 | GaN (power) | switching specialized | group III |
-| 6 | InP (photonic) | optical comms | group V |
-
-#### K2 core architecture (5 types = sopfr)
-
-| # | architecture | IPC | n=6 link |
-|---|---------|-----|---------|
-| 1 | Out-of-order | 4 | τ=4 issue |
-| 2 | In-order VLIW | 6 | n=6 slots |
-| 3 | GPU SIMT | 144 | σ²=144 SM |
-| 4 | Systolic | 288 | σ·J₂=288 MAC |
-| 5 | Dataflow | 12 | σ=12 nodes |
-
-#### K3 memory (4 types = τ)
-
-| # | memory | bandwidth | n=6 link |
-|---|--------|-----|---------|
-| 1 | HBM3 | 819 GB/s | σ·τ=48 stack |
-| 2 | DDR5 | 51 GB/s | σ·J₂=288 bit |
-| 3 | SRAM | 1 TB/s | 64B line |
-| 4 | MRAM (non-volatile) | 100 GB/s | σ=12 bank |
-
-#### K4 I/O (5 types = sopfr)
-
-| # | I/O | bandwidth | n=6 link |
-|---|-----|-----|---------|
-| 1 | UCIe | 288 GB/s | σ·J₂=288 lanes |
-| 2 | PCIe 6.0 | 128 GB/s | 16 lanes |
-| 3 | CXL 3.0 | 128 GB/s | Cache coherent |
-| 4 | Ethernet 400G | 50 GB/s | σ·J₂/6 |
-| 5 | Optical (MZI) | 1.2 TB/s | λ=12 wavelengths |
-
-#### K5 control (4 types = τ)
-
-| # | system | property | n=6 link |
-|---|--------|-----|---------|
-| 1 | Central Scheduler | σ=12 queues | L4 control |
-| 2 | Distributed (actor) | n=6 torus | NoC |
-| 3 | Dataflow | τ=4 pipe | SM local |
-| 4 | AI Self-schedule | 144 SM autonomous | RL-based |
-
-#### Pareto Top-6
-
-| Rank | L0 | L1 | L2 | L3 | L4 | n6% | note |
-|------|----|----|----|----|----|-----|------|
-| 1 | Diamond | Systolic | HBM3 | UCIe | AI | 94% | **draft optimum** |
-| 2 | Si | GPU | HBM3 | UCIe | Dist | 92% | conservative |
-| 3 | GaAs | Dataflow | SRAM | Optical | Dataflow | 91% | low latency |
-| 4 | SiC | VLIW | DDR5 | CXL | Central | 88% | power |
-| 5 | GaN | OoO | MRAM | PCIe | Central | 85% | non-volatile |
-| 6 | InP | GPU | SRAM | Optical | AI | 90% | optical comms |
-
-
-## §7 VERIFY (Python verification)
-
-Verifies whether Ultimate Wafer Integration HEXA-WAFER-UNIF holds physically/mathematically using only stdlib. Cross-checks asserted design specifications against fundamental formulas.
-
-### Testable Predictions (10 verifiable predictions)
-
-#### TP-HEXA-WAFER-1: MAC array = σ·J₂ = 288
-- **Verification**: implement 12×24 systolic array and measure MAC count
-- **Prediction**: 288 ± 2 MAC/cycle
-- **Tier**: 1 (RTL synthesis immediate)
-
-#### TP-HEXA-WAFER-2: σ² = 144 SM array symmetry
-- **Verification**: 12×12 SM array response time σ=12 equivalent
-- **Prediction**: response-time variance < 1%
-- **Tier**: 1
-
-#### TP-HEXA-WAFER-3: τ=4 pipeline depth + φ=2 issue → IPC 2
-- **Verification**: OoO/VLIW hybrid core simulator
-- **Prediction**: IPC sustained = 2.0 ± 0.1
-- **Tier**: 1
-
-#### TP-HEXA-WAFER-4: Egyptian 1/2+1/3+1/6 power split = 1.0 exact
-- **Verification**: Fraction(1,2)+Fraction(1,3)+Fraction(1,6) == Fraction(1,1)
-- **Prediction**: exact equality (not floating-point approximation)
-- **Tier**: 1 (pure math, immediate)
-
-#### TP-HEXA-WAFER-5: B⁴ scaling exponent = 4 ± 0.1
-- **Verification**: log-log regression on field [10,20,30,40,48] vs performance data
-- **Prediction**: slope = 4.0 ± 0.1
-- **Tier**: 2
-
-#### TP-HEXA-WAFER-6: ±10% perturbation of SM count is convex optimum
-- **Verification**: 130/144/158 SM array performance bench
-- **Prediction**: 144 is convex extremum (better than 130, 158)
-- **Tier**: 1
-
-#### TP-HEXA-WAFER-7: Carnot/Landauer upper bound not exceeded
-- **Verification**: power efficiency ≤ 1 - T_c/T_h, bit erasure ≥ kT ln2
-- **Prediction**: every claim within physical limits
-- **Tier**: 1 (immediate)
-
-#### TP-HEXA-WAFER-8: χ² p-value > 0.05 (n=6 chance hypothesis cannot be rejected)
-- **Verification**: 49 parameter predictions vs target value χ² calc
-- **Prediction**: p > 0.05
-- **Tier**: 1
-
-#### TP-HEXA-WAFER-9: OEIS A000203/A000005/A000010 sequence registration
-- **Verification**: [1,2,3,6,12,24,48] is OEIS A008586-variant
-- **Prediction**: external DB matching OK
-- **Tier**: 1 (pure math, immediate)
-
-#### TP-HEXA-WAFER-10: Fraction exact-rational match
-- **Verification**: D/H = Fraction(24,8) == Fraction(6,2) == 3
-- **Prediction**: exact-fraction equality, not floating point
-- **Tier**: 1 (pure math, immediate)
-
-### n=6 honesty verification 10 categories (section overview)
-
-Philosophy: "claim X is supported by formula Y" (surface-level circular reasoning) → "n=6 structure emerges necessarily from number theory / dimensions / scaling / statistics" (multi-layer demonstration).
-
-### §7.0 CONSTANTS — number-theoretic functions auto-derive
-`sigma(6)=12`, `tau(6)=4`, `phi=2`, `sopfr(6)=5`, `J₂=2σ=24`. Hardcoding 0 — directly computed from OEIS A000203/A000005/A001414. Self-checks via `assert σ(n)==2n` for the perfect-number property.
-
-### §7.1 DIMENSIONS — SI unit consistency
-Tracks the dimension tuple `(M, L, T, I)` of every formula. `P = V·I` is auto-checked as `[V][A] = [W]`. Dimension-mismatched formulas are rejected.
-
-### §7.2 CROSS — independent paths re-derive 3x
-288 MAC re-derived three ways: `σ·J₂` / `12×24 array` / `σ²+φ·σ² = 144+288`. Must agree within 15% to be trusted.
-
-### §7.3 SCALING — log-log regression to back-infer exponent
-Is the `B⁴ confinement` exponent really 4? Measure log slope from data `[10,20,30,40,48]` vs `b⁴` → confirm 4.0 ± 0.1.
-
-### §7.4 SENSITIVITY — ±10% convexity
-At `f(n=6)`, perturb n by ±10% and check that both `f(6.6)` and `f(5.4)` are worse than `f(6)`. Convex extremum = a draft optimum, flat = curve fitting.
-
-### §7.5 LIMITS — physical upper bounds not exceeded
-Carnot `η ≤ 1 - T_c/T_h`, Landauer `E ≥ kT ln2`, Shannon C = B·log₂(1+SNR), etc. Reject claims that exceed fundamental limits.
-
-### §7.6 CHI2 — H₀: n=6 chance-hypothesis p-value
-49 parameter predictions vs observed χ² → p-value approximated by `erfc(√(χ²/2df))`. p > 0.05 means the "n=6 chance" hypothesis cannot be rejected (significant).
-
-### §7.7 OEIS — external sequence DB match
-`[1,2,3,6,12,24,48]` is registered as an OEIS A008586-variant (n·2^k). Existence in a number-theory DB = mathematics already discovered by humans, hence not fabricable.
-
-### §7.8 PARETO — Monte Carlo exhaustive search
-DSE `K1×K2×K3×K4×K5 = 6×5×4×5×4 = 2400` combination sampling. Statistically check whether the n=6 configuration falls in the top 5%.
-
-### §7.9 SYMBOLIC — Fraction exact-rational match
-`from fractions import Fraction`. `Egyptian = Fraction(1,2)+Fraction(1,3)+Fraction(1,6) == Fraction(1,1)` — exact-rational `==` comparison rather than floating-point approximation.
-
-### §7.10 COUNTER — counterexamples + Falsifiers
-- counterexamples (n=6 unrelated): elementary charge e, Planck h, π — these are not n=6-derivable, honestly admitted
-- Falsifier: MAC/cycle measured < 245 → discard σ·J₂=288 formula / p-value < 0.01 → discard n=6 hypothesis / Egyptian sum ≠ 1 → discard structure
-
-### §7 integrated verification code (stdlib only)
-
-```python
-#!/usr/bin/env python3
-# ─────────────────────────────────────────────────────────────────────────────
-# §7 VERIFY — Ultimate Wafer Integration HEXA-WAFER-UNIF n=6 honesty verification (stdlib only, chip domain)
-#
-# 10-section structure:
-#   §7.0 CONSTANTS  — auto-derive n=6 constants from number-theoretic functions (hardcoding 0)
-#   §7.1 DIMENSIONS — SI unit consistency (P=V·I dimension tracking)
-#   §7.2 CROSS      — re-derive same result via ≥3 independent paths
-#   §7.3 SCALING    — log-log regression back-infers B⁴ exponent
-#   §7.4 SENSITIVITY— perturb n=6 by ±10%, confirm convex extremum
-#   §7.5 LIMITS     — Carnot/Landauer physical upper bounds not exceeded
-#   §7.6 CHI2       — compute H₀: n=6 chance-hypothesis p-value
-#   §7.7 OEIS       — match n=6 family sequences against external DB (A-id)
-#   §7.8 PARETO     — Monte Carlo rank of n=6 among 2400 combinations
-#   §7.9 SYMBOLIC   — exact-rational equality via Fraction
-#   §7.10 COUNTER   — counterexamples + falsifiers explicit (honesty)
-# ─────────────────────────────────────────────────────────────────────────────
-
-from math import pi, sqrt, log, erfc, log2
-from fractions import Fraction
-import random
-
-# ─── §7.0 CONSTANTS — auto-derive n=6 constants from number-theoretic functions ───
-# Why: "where does σ=12 come from?" "why τ=4?" — hardcoding is circular.
-# Auto-generate via number-theoretic functions → because n=6 is a "perfect number" (σ(n)=2n), this constant family is necessary.
-def divisors(n):
-    """divisor set. n=6 → {1,2,3,6}"""
-    return {d for d in range(1, n+1) if n % d == 0}
-
-def sigma(n):
-    """sum of divisors (OEIS A000203). σ(6) = 1+2+3+6 = 12"""
-    return sum(divisors(n))
-
-def tau(n):
-    """divisor count (OEIS A000005). τ(6) = |{1,2,3,6}| = 4"""
-    return len(divisors(n))
-
-def sopfr(n):
-    """sum of prime factors (OEIS A001414). sopfr(6) = 2+3 = 5"""
-    s, k = 0, n
-    for p in range(2, n+1):
-        while k % p == 0:
-            s += p; k //= p
-        if k == 1: break
-    return s
-
-def phi_min_prime(n):
-    """smallest prime factor. φ(6) = 2"""
-    for p in range(2, n+1):
-        if n % p == 0: return p
-
-def euler_phi(n):
-    """Euler totient (OEIS A000010). φ_E(6) = 2"""
-    r = n
-    p = 2
-    nn = n
-    while p * p <= nn:
-        if nn % p == 0:
-            while nn % p == 0: nn //= p
-            r -= r // p
-        p += 1
-    if nn > 1: r -= r // nn
-    return r
-
-# n=6 family — all derived via number-theoretic functions, hardcoding 0
-N          = 6
-SIGMA      = sigma(N)            # 12 = σ(6)  ← OEIS A000203
-TAU        = tau(N)              # 4  = τ(6)  ← OEIS A000005
-PHI        = phi_min_prime(N)    # 2  = min prime
-SOPFR      = sopfr(N)            # 5  = 2+3
-EULER_PHI  = euler_phi(N)        # 2  = |{1,5}|  ← OEIS A000010
-J2         = 2 * SIGMA            # 24 = 2σ
-SIGMA_PHI  = SIGMA - PHI          # 10 = σ-φ
-SIGMA_TAU  = SIGMA * TAU          # 48 = σ·τ
-MAC        = SIGMA * J2           # 288 = σ·J₂
-
-# self-check: n=6 is a perfect number — σ(n)=2n must hold
-assert SIGMA == 2 * N, "n=6 perfectness broken"
-# master identity: σ·φ = n·τ = J₂
-assert SIGMA * PHI == N * TAU == J2, "master identity broken"
-
-# ─── §7.1 DIMENSIONS — dimensional analysis (SI unit consistency) ────────────
-# Why: does P=V·I match units? [V][A] = [W] must hold.
-DIM = {
-    'P': (1, 2, -3,  0),  # W  = kg·m²/s³  ← σ(6)=12, τ(6)=4
-    'V': (1, 2, -3, -1),  # V  = W/A
-    'I': (0, 0,  0,  1),  # A  = A
-    'F': (1, 1, -2,  0),  # N
-    'E': (1, 2, -2,  0),  # J
-    't': (0, 0,  1,  0),  # s
-}
-
-def dim_mul(*syms):
-    """dimension product: V*I → [V][A] = [W]"""
-    r = [0, 0, 0, 0]
-    for s in syms:
-        for i, x in enumerate(DIM[s]): r[i] += x
-    return tuple(r)
-
-# ─── §7.2 CROSS — re-derive same result via 3 independent paths ───────────────
-# Why: matching MAC=288 via a single formula is circular. Three independent paths must agree to be trustworthy.
-def cross_mac_3ways():
-    """compute the 288 MAC array via 3 paths: σ·J₂ / 12×24 array / σ²+σ·J₂/2"""
-    # path 1: σ·J₂ direct ← σ(6)=12, J₂=24
-    F1 = SIGMA * J2                          # 12·24 = 288
-    # path 2: 12×24 systolic array size
-    F2 = 12 * 24                             # = 288
-    # path 3: σ² + σ·J₂/2 = 144 + 144 = 288
-    F3 = SIGMA ** 2 + (SIGMA * J2) // 2
-    return F1, F2, F3
-
-# ─── §7.3 SCALING — scaling-law log regression ───────────────────────────────
-# Why: is the "B⁴ confinement" exponent really 4? Back-infer with log-log regression on data.
-def scaling_exponent(xs, ys):
-    """log-log slope = scaling exponent. For B⁴, slope ≈ 4.0"""
-    n = len(xs)
-    lx = [log(x) for x in xs]
-    ly = [log(y) for y in ys]
-    mx = sum(lx) / n; my = sum(ly) / n
-    num = sum((lx[i] - mx) * (ly[i] - my) for i in range(n))
-    den = sum((lx[i] - mx) ** 2 for i in range(n))
-    return num / den if den else 0
-
-# ─── §7.4 SENSITIVITY — perturb by ±10% to check convexity ────────────────────
-# Why: if n=6 is the "draft optimum", a ±10% perturbation degrades it. If it's just curve fitting, flat.
-def sensitivity(f, x0, pct=0.1):
-    """f(x0±10%) must both be worse than f(x0) for an extremum (convex)"""
-    y0 = f(x0); yh = f(x0 * (1 + pct)); yl = f(x0 * (1 - pct))
-    return y0, yh, yl, (yh > y0 and yl > y0)
-
-# ─── §7.5 LIMITS — physical upper bounds not exceeded ─────────────────────────
-# Why: must not exceed fundamental Carnot/Landauer limits to be a realistic claim.
-def carnot(T_hot, T_cold):
-    """Carnot efficiency. η ≤ 1 - T_c/T_h"""
-    return 1 - T_cold / T_hot
-
-K_BOLTZMANN = 1.380649e-23
-def landauer(T):
-    """Landauer limit: minimum energy to erase a bit = kT ln2"""
-    return K_BOLTZMANN * T * log(2)
-
-def shannon(B, snr):
-    """Shannon capacity. C = B·log₂(1+SNR)"""
-    return B * log2(1 + snr)
-
-# ─── §7.6 CHI2 — H₀: n=6 chance-hypothesis p-value ────────────────────────────
-# Why: what is the probability that "49/49 match" is by chance? χ² → p-value.
-def chi2_pvalue(observed, expected):
-    """χ² = Σ(O-E)²/E. p-value approximated via erfc (stdlib limitation)"""
-    chi2 = sum((o - e) ** 2 / e for o, e in zip(observed, expected) if e)
-    df = len(observed) - 1
-    p = erfc(sqrt(chi2 / (2 * df))) if chi2 > 0 else 1.0
-    return chi2, df, p
-
-# ─── §7.7 OEIS — external sequence DB match (offline hash) ────────────────────
-# Why: registration of n=6 family sequences in OEIS = "mathematics already discovered by humans".
-OEIS_KNOWN = {
-    (1, 2, 3, 6, 12, 24, 48): "A008586-variant (n·2^k, HEXA family)",
-    (1, 3, 4, 7, 6, 12, 8):    "A000203 (sigma)",
-    (1, 2, 2, 3, 2, 4, 2):     "A000005 (tau)",
-    (0, 2, 3, 4, 5, 5, 7):     "A001414 (sopfr)",
-    (1, 1, 2, 2, 4, 2, 6):     "A000010 (euler phi)",
-}
-
-# ─── §7.8 PARETO — Monte Carlo exhaustive search ─────────────────────────────
-# Why: among 2,400 DSE combinations, is the n=6 configuration top-ranked? statistical significance.
-def pareto_rank_n6():
-    """K1=n × K2=sopfr × K3=τ × K4=sopfr × K5=τ = 6×5×4×5×4 = 2400"""
-    random.seed(6)
-    n_total = 2400
-    n6_score = 0.94  # actual n=6 configuration §4 STRUCT EXACT ratio
-    better = sum(1 for _ in range(n_total) if random.gauss(0.7, 0.1) > n6_score)
-    return better / n_total  # top-%. Lower is better.
-
-# ─── §7.9 SYMBOLIC — exact-rational equality via Fraction ─────────────────────
-# Why: demonstrate Egyptian 1/2+1/3+1/6=1 as exact fractions, not floating-point approximation.
-def symbolic_ratios():
-    tests = [
-        ("Egyptian",  Fraction(1,2)+Fraction(1,3)+Fraction(1,6), Fraction(1,1)),
-        ("sigma*phi", Fraction(SIGMA*PHI),                        Fraction(N*TAU)),
-        ("MAC/sigma", Fraction(MAC, SIGMA),                       Fraction(J2)),
-    ]
-    return [(name, a == b, f"{a} == {b}") for name, a, b in tests]
-
-# ─── §7.10 COUNTER — counterexamples/Falsifiers (required for honesty) ────────
-# Why: an honest theory states its falsification conditions. Areas where n=6 doesn't fit are also disclosed.
-COUNTER_EXAMPLES = [
-    ("elementary charge e = 1.602×10⁻¹⁹ C", "unrelated to n=6 — independent QED constant"),
-    ("Planck h = 6.626×10⁻³⁴",     "6.6 is coincidental, not n=6 derivation"),
-    ("π = 3.14159...",              "the circle constant is geometric, independent of n=6"),
-    ("fine-structure α ≈ 1/137",   "QED renormalization constant, unrelated to n=6"),
-]
-FALSIFIERS = [
-    "MAC/cycle measured < 245 (288×85%) → discard σ·J₂ formula",
-    "SM array symmetry variance > 5% → discard σ²=144",
-    "Egyptian sum ≠ 1 (Fraction equality fails) → discard power-split structure",
-    "χ² p-value < 0.01 → adopt n=6 chance hypothesis, discard this design",
-]
-
-# ─── main run + aggregation ──────────────────────────────────────────────────
-if __name__ == "__main__":
-    r = []
-
-    # §7.0 number-theoretic constant derivation
-    r.append(("§7.0 CONSTANTS number-theoretic derivation",
-              SIGMA == 12 and TAU == 4 and PHI == 2 and SOPFR == 5))
-
-    # §7.1 P=V·I dimensions
-    r.append(("§7.1 DIMENSIONS P=V·I",
-              dim_mul('V', 'I') == DIM['P']))
-
-    # §7.2 3-path ±15% match
-    F1, F2, F3 = cross_mac_3ways()
-    r.append(("§7.2 CROSS MAC 3-path match",
-              all(abs(F - 288) / 288 < 0.15 for F in [F1, F2, F3])))
-
-    # §7.3 B⁴ exponent ≈ 4.0
-    exp_B = scaling_exponent([10, 20, 30, 40, 48], [b**4 for b in [10,20,30,40,48]])
-    r.append(("§7.3 SCALING B⁴ exponent ≈ 4",
-              abs(exp_B - 4.0) < 0.1))
-
-    # §7.4 n=6 convex draft optimum
-    _, yh, yl, convex = sensitivity(lambda n: abs(n - 6) + 1, 6)
-    r.append(("§7.4 SENSITIVITY n=6 convex", convex))
-
-    # §7.5 physical upper bounds
-    r.append(("§7.5 LIMITS Carnot η < 1", carnot(1e8, 300) < 1.0))
-    r.append(("§7.5 LIMITS Landauer > 0", landauer(300) > 0))
-
-    # §7.6 χ² p-value > 0.05 (H₀ not rejected = n=6 structure significant)
-    chi2, df, p = chi2_pvalue([1.0] * 49, [1.0] * 49)
-    r.append(("§7.6 CHI2 H₀ not rejected", p > 0.05 or chi2 == 0))
-
-    # §7.7 OEIS registration ← A000203/A000005/A000010
-    r.append(("§7.7 OEIS sequence registration", (1, 2, 3, 6, 12, 24, 48) in OEIS_KNOWN))
-
-    # §7.8 Pareto top 5%
-    r.append(("§7.8 PARETO n=6 top 5%", pareto_rank_n6() < 0.05))
-
-    # §7.9 Fraction exact match
-    r.append(("§7.9 SYMBOLIC Fraction match",
-              all(ok for _, ok, _ in symbolic_ratios())))
-
-    # §7.10 counterexamples/falsifiers present = honesty
-    r.append(("§7.10 COUNTER/FALSIFIERS explicit",
-              len(COUNTER_EXAMPLES) >= 3 and len(FALSIFIERS) >= 3))
-
-    passed = sum(1 for _, ok in r if ok)
-    total = len(r)
-    print("=" * 60)
-    for name, ok in r:
-        print(f"  [{('OK' if ok else 'FAIL')}] {name}")
-    print("=" * 60)
-    print(f"{passed}/{total} PASS (n=6 honesty verification)")
+### 6.4 Bisection Bandwidth
+
+```
+  Bisection: 웨이퍼를 반으로 나눌 때 절단되는 총 대역폭
+
+  Mesh bisection (vertical cut through column 6):
+    Links crossing: sigma = 12 rows * 1 link/row = 12 links
+    Per link: 2^sigma = 4,096 GB/s
+    Mesh bisection BW: 12 * 4,096 = 49,152 GB/s ~ 48 TB/s
+
+  Optical bisection (additional):
+    ~36 optical links cross any bisection
+    Per link: 576 Gbps = 72 GB/s
+    Optical bisection: 36 * 72 = 2,592 GB/s ~ 2.5 TB/s
+
+  Total bisection BW: ~50.5 TB/s
+
+  ┌─────────┬──── bisection cut ────┬──────────┐
+  │         │          |            │          │
+  │  LEFT   │  12 mesh |links cross │  RIGHT   │
+  │  HALF   │  + optical|overlay    │  HALF    │
+  │ 72 tiles│          |            │ 72 tiles │
+  │         │    48 + 2.5 TB/s      │          │
+  │         │          |            │          │
+  └─────────┴──────────|────────────┴──────────┘
+                       |
+              50.5 TB/s total
+
+  Bisection BW per TFLOPS: 50,500 / 10,368 ~ 4.87 GB/s/TFLOPS
+  (매우 높음 -- all-reduce에 이상적)
 ```
 
+---
 
-## §6 EVOLVE (Mk.I~V evolution)
+## 7. Memory Architecture
 
-Roadmap toward actual realization of Ultimate Wafer Integration HEXA-WAFER-UNIF — each Mk stage requires a level of process and software maturity:
+### 7.1 Distributed Memory with Global Address Space
 
-<details open>
-<summary><b>Mk.V — 2050+ fully AI-native (current target)</b></summary>
+```
+  ┌──────────────────────────────────────────────────────────────────┐
+  │                  HEXA-WAFER MEMORY HIERARCHY                     │
+  │                                                                  │
+  │  Level 0: Register File (per SM)                                 │
+  │    2^(sigma-tau) = 256 KB per SM                                 │
+  │    Total: 256 KB * 20,736 = 5.2 GB                              │
+  │    Latency: 0 cycles                                             │
+  │                                                                  │
+  │  Level 1: Shared Memory / L1 Cache (per SM)                      │
+  │    2^(sigma-mu) / sigma = 2048/12 ~ 170 KB per SM               │
+  │    Configurable shared/L1 split                                  │
+  │    Total: ~3.4 GB                                                │
+  │    Latency: ~sigma-tau = 8 cycles                                │
+  │                                                                  │
+  │  Level 2: L2 Cache (per tile)                                    │
+  │    sigma * J_2 / tau = 288/4 = 72 MB per tile                   │
+  │    Total: 72 * 144 = 10,368 MB ~ 10 GB                          │
+  │    Latency: ~sigma*tau = 48 cycles                               │
+  │                                                                  │
+  │  Level 3: Local HBM (per tile)                                   │
+  │    sigma*J_2 = 288 GB per tile                                   │
+  │    Total: 144 * 288 = 41,472 GB ~ 40.5 TB                       │
+  │    Latency: ~sigma^2 = 144 cycles                                │
+  │    BW per tile: ~4 TB/s                                          │
+  │                                                                  │
+  │  Level 4: Remote HBM (other tiles via mesh)                      │
+  │    Global unified address space                                  │
+  │    Latency: 144 + hop_count * 50 cycles                          │
+  │    BW: limited by mesh link (4 TB/s per hop)                     │
+  │                                                                  │
+  │  Level 5: Off-wafer (host/storage)                               │
+  │    Optical I/O, sigma*tau=48 fiber bundles                       │
+  │    BW: ~48 * 100 Gbps = 4.8 Tbps = 600 GB/s                    │
+  └──────────────────────────────────────────────────────────────────┘
+```
 
-All n=6 boundary constants hardwired. AI-native synthesis automates "one sentence → RTL → wafer" in τ=4 months.
-Prerequisites: chip-architecture 🛸10, compiler-os 🛸10, programming-language 🛸10 all reached.
+### 7.2 Memory Hierarchy Diagram
 
-</details>
+```
+           ┌──────────┐
+           │ Registers │  5.2 GB total, 0 cycles
+           │  256 KB/SM│
+           └────┬─────┘
+                │
+           ┌────┴─────┐
+           │  L1/SMEM  │  3.4 GB total, 8 cycles
+           │  170 KB/SM│
+           └────┬─────┘
+                │
+           ┌────┴─────┐
+           │  L2 Cache │  10 GB total, 48 cycles
+           │  72 MB/tile│
+           └────┬─────┘
+                │
+      ┌─────────┴──────────┐
+      │                    │
+ ┌────┴──────┐      ┌─────┴──────┐
+ │ Local HBM │      │ Remote HBM │
+ │ 288 GB    │      │ 41.2 TB    │
+ │ 144 cyc   │      │ 200+ cyc   │
+ │ 4 TB/s    │      │ mesh BW    │
+ └────┬──────┘      └─────┬──────┘
+      │                    │
+      └─────────┬──────────┘
+                │
+           ┌────┴──────┐
+           │  Off-wafer │  Host, SSD, Network
+           │  600 GB/s  │
+           └───────────┘
+```
 
-<details>
-<summary>Mk.IV — 2040~2050 n=6 hardwired silicon</summary>
+### 7.3 NUMA-Aware Scheduling
 
-σ²=144 SM + σ·J₂=288 MAC + Egyptian power split fully siliconized.
-EUV/High-NA σ-φ=10nm node-based wafer scale.
+40.5 TB를 flat하게 보면 성능이 나빠진다. NUMA 인식 배치가 필수.
 
-</details>
+```
+  NUMA Domains:
+  ┌──────────────────────────────────────────────┐
+  │                                              │
+  │  NUMA Zone 0       NUMA Zone 1               │
+  │  ┌──────────┐     ┌──────────┐              │
+  │  │ Tiles    │     │ Tiles    │              │
+  │  │ 0-35     │     │ 36-71    │              │
+  │  │ (3 rows) │     │ (3 rows) │              │
+  │  │ 10.1 TB  │     │ 10.1 TB  │              │
+  │  └──────────┘     └──────────┘              │
+  │                                              │
+  │  NUMA Zone 2       NUMA Zone 3               │
+  │  ┌──────────┐     ┌──────────┐              │
+  │  │ Tiles    │     │ Tiles    │              │
+  │  │ 72-107   │     │ 108-143  │              │
+  │  │ (3 rows) │     │ (3 rows) │              │
+  │  │ 10.1 TB  │     │ 10.1 TB  │              │
+  │  └──────────┘     └──────────┘              │
+  │                                              │
+  │  Zones: tau = 4 NUMA domains                 │
+  │  Tiles per zone: sigma^2/tau = 36            │
+  │  Memory per zone: 36 * 288 = 10,368 GB       │
+  │  Intra-zone max hops: n/phi = 3              │
+  │  Inter-zone hops: sopfr=5 to sigma-1=11      │
+  └──────────────────────────────────────────────┘
+```
 
-<details>
-<summary>Mk.III — 2035~2040 RTL integrated chip</summary>
+### 7.4 LLM Layer Placement Strategy
 
-HEXA-1 digital core + σ=12 channel I/O + τ=4 stage cache integrated SoC.
-Existing foundry 7nm process usable.
+```
+  10T parameter model @ FP4 (4-bit):
+    Model size: 10T * 0.5 bytes = 5,000 GB = 5 TB
+    KV cache (2M context): ~1.5 TB
+    Activations + workspace: ~2 TB
+    Total: ~8.5 TB (fits in 40.5 TB with headroom)
 
-</details>
+  Layer Placement:
+  ┌──────────────────────────────────────┐
+  │  Transformer Layer Distribution      │
+  │                                      │
+  │  Model: 10T params, 128 layers       │
+  │  (2^sopfr * tau = 128 = BT-56)      │
+  │                                      │
+  │  Layers per tile: 128/144 < 1        │
+  │  --> Some tiles hold 1 layer, some 0 │
+  │  --> Perfect pipeline parallelism    │
+  │                                      │
+  │  Tile 0:   Embedding layer           │
+  │  Tile 1:   Layer 0 (weights + KV)    │
+  │  Tile 2:   Layer 1                   │
+  │  ...                                 │
+  │  Tile 128: Layer 127                 │
+  │  Tile 129: Output head               │
+  │  Tile 130-143: Spare / batch overlap │
+  │                                      │
+  │  Data flow: sequential through mesh  │
+  │  T0 -> T1 -> T2 -> ... -> T128->T129│
+  │  Pipeline bubble: negligible at 128  │
+  └──────────────────────────────────────┘
+```
 
-<details>
-<summary>Mk.II — 2030~2035 prototype FPGA</summary>
+---
 
-n=6 boundary-constant FPGA prototype. 288 MAC simulation + software emulation.
-Benchmark σ-φ=10x efficiency target vs existing.
+## 8. Power Delivery
 
-</details>
+### 8.1 Total Power Budget
 
-<details>
-<summary>Mk.I — 2026~2030 software reference</summary>
+```
+  Total wafer power: sigma^2 * 240W = 34,560W ~ 35 kW
 
-CPU emulation reference + Python verification code. n=6 number-theoretic constant auto-derivation drafted.
-§7 10-subsection honesty verification passing. `hexa-wafer` document canonical v2 fixed.
+  Power breakdown (wafer level):
+  ┌────────────────────────────────────────────────────────┐
+  │              WAFER POWER BUDGET (35 kW)                 │
+  │                                                        │
+  │  ██████████████████████████████  17.3 kW (1/2) Compute │
+  │  ████████████████████           11.5 kW (1/3) Memory  │
+  │  ██████████                      5.8 kW (1/6) I/O     │
+  │                                                        │
+  │  Egyptian fraction preserved at wafer level             │
+  └────────────────────────────────────────────────────────┘
 
-</details>
+  Comparison:
+    Single NVIDIA H100 GPU:    700W
+    NVIDIA DGX H100 (8 GPU):   10,200W
+    Cerebras CS-3 (WSE-3):    ~23,000W
+    HEXA-WAFER:                34,560W
+    HEXA-WAFER per TFLOPS:     34,560/10,368 = 3.33 W/TFLOPS(FP8)
+```
 
+### 8.2 Power Delivery Architecture
 
-## §8 IDEAS
+전통적 칩은 패키지 핀을 통해 전력을 받는다.
+HEXA-WAFER는 패키지가 없으므로, 웨이퍼 엣지와 이면(backside)을 통해 전력을 공급한다.
 
-This section covers ideas for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+```
+  Power Delivery Cross-Section:
+  ┌────────────────────────────────────────────────────────────┐
+  │                                                            │
+  │   === Cooling plate (top) ===                              │
+  │   ┌─────────────────────────────────────────────────────┐  │
+  │   │                 WAFER (front side)                   │  │
+  │   │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐     │  │
+  │   │  │Tile 0│ │Tile 1│ │Tile 2│ │ ...  │ │T 143│     │  │
+  │   │  └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘     │  │
+  │   │     │        │        │        │        │          │  │
+  │   │  ===╪========╪========╪========╪========╪=======   │  │
+  │   │     │  BACKSIDE POWER DELIVERY NETWORK (BSPDN)     │  │
+  │   │     │  sigma=12 power rails (radial from edge)     │  │
+  │   │     │                                              │  │
+  │   │  ┌──┴───────────────────────────────────────────┐  │  │
+  │   │  │  Per-Tile Voltage Regulator (TLVR)           │  │  │
+  │   │  │  Input: 48V DC (sigma*tau = 48)              │  │  │
+  │   │  │  Output: 0.75V core / 1.2V I/O              │  │  │
+  │   │  │  Efficiency: > 95% (BT-74: PF=0.95)         │  │  │
+  │   │  └──────────────────────────────────────────────┘  │  │
+  │   └─────────────────────────────────────────────────────┘  │
+  │   === Cooling plate (bottom) ===                           │
+  │                                                            │
+  │   External Power:                                          │
+  │     sigma*tau = 48V DC bus (BT-60, BT-76)                 │
+  │     Current: 35,000W / 48V = 729A total                   │
+  │     Distribution: sigma=12 radial power rails              │
+  │     Per rail: 729/12 ~ 61A                                │
+  └────────────────────────────────────────────────────────────┘
+```
 
-## §9 METRICS
+### 8.3 Backside Power Delivery Network (BSPDN)
 
-This section covers metrics for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+```
+  TSMC N2 BSPDN (Backside PDN):
+  ┌─────────────────────────────────────────────────────┐
+  │                                                     │
+  │  Front side: signal routing only (더 많은 금속 가용) │
+  │  Back side: power delivery only                     │
+  │                                                     │
+  │  Front (signal):                                    │
+  │  ┌──────────────────────────────────────────────┐   │
+  │  │  M1-M12: sigma=12 metal layers              │   │
+  │  │  All dedicated to signal routing             │   │
+  │  │  Pitch: P_2=28nm (bottom) to ~1um (top)     │   │
+  │  └──────────────────────────────────────────────┘   │
+  │  === Transistor Layer ===                            │
+  │  ┌──────────────────────────────────────────────┐   │
+  │  │  Backside:                                   │   │
+  │  │  BM1-BM4: tau=4 backside metal layers        │   │
+  │  │  Power grid: VDD + VSS rails                 │   │
+  │  │  Per-tile voltage island                     │   │
+  │  └──────────────────────────────────────────────┘   │
+  │                                                     │
+  │  이점:                                               │
+  │  - 전면 금속 전부를 신호에 사용 -> 라우팅 밀도 증가    │
+  │  - 전력 공급 임피던스 감소 (shorter path)             │
+  │  - IR drop < 5% (BT-74: 5% threshold)              │
+  │  - 타일별 독립 전압 조절 가능                          │
+  └─────────────────────────────────────────────────────┘
+```
 
-## §10 RISKS
+### 8.4 Per-Tile Voltage Regulation
 
-This section covers risks for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+```
+  Power Domain Table:
 
-## §11 DEPENDENCIES
+  | Domain | Voltage | Current | Power | n=6 |
+  |--------|---------|---------|-------|-----|
+  | Core (compute) | 0.75V | 160A | 120W | 1/2 of 240W |
+  | HBM I/O | 1.2V | 67A | 80W | 1/3 of 240W |
+  | Mesh + Ctrl | 0.85V | 47A | 40W | 1/6 of 240W |
+  | Total per tile | -- | -- | 240W | -- |
 
-This section covers dependencies for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+  Core voltage: 0.75V = n/sigma * 1.5 (scaled)
+  I/O voltage: 1.2V = sigma/(sigma-phi) = PUE (BT-60, BT-62)
+  48V input: sigma*tau = 48 (BT-76: sigma*tau triple attractor)
 
-## §12 TIMELINE
+  DVFS levels per tile: n = 6
+  ┌───────────────────────────────────────┐
+  │  DVFS Level  │  Voltage  │  Freq     │
+  ├──────────────┼───────────┼───────────┤
+  │  Level 0     │  0.60V    │  0.8 GHz  │
+  │  Level 1     │  0.65V    │  1.0 GHz  │
+  │  Level 2     │  0.70V    │  1.2 GHz  │
+  │  Level 3     │  0.75V    │  1.5 GHz  │
+  │  Level 4     │  0.80V    │  1.8 GHz  │
+  │  Level 5     │  0.85V    │  2.0 GHz  │
+  └──────────────┴───────────┴───────────┘
+  n = 6 DVFS levels, Egyptian-scheduled
+```
 
-This section covers timeline for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+---
 
-## §13 TOOLS
+## 9. Cooling
 
-This section covers tools for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+### 9.1 Thermal Challenge
 
-## §14 TEAM
+35 kW를 300mm 웨이퍼 면적(~707 cm^2)에서 방출해야 한다.
 
-This section covers team for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+```
+  Heat flux: 35,000W / 707 cm^2 ~ 49.5 W/cm^2 (average)
+  Per-tile peak: 240W / 5.85 cm^2 ~ 41 W/cm^2
 
-## §15 REFERENCES
+  비교:
+    CPU (desktop):     ~20 W/cm^2 (air ok)
+    GPU (H100):        ~50 W/cm^2 (air barely ok)
+    Cerebras WSE-3:    ~33 W/cm^2 (water cooled)
+    HEXA-WAFER:        ~50 W/cm^2 (liquid required)
+    Nuclear reactor:   ~65 W/cm^2
 
-This section covers references for the domain. Initial scaffold content — expand with domain-specific data, references, and verification in subsequent revisions.
+  결론: 공랭 불가능. 액체 냉각 필수 (liquid cooling mandatory).
+```
+
+### 9.2 Microfluidic Cooling System
+
+```
+  Cooling Architecture Cross-Section:
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │  ═══════════════════════════════════════  Cold plate (Al)    │
+  │  ┌──────────────────────────────────────────────────────┐   │
+  │  │  Thermal Interface Material (TIM1)                    │   │
+  │  │  Thickness: ~50 um, conductivity: > 5 W/mK           │   │
+  │  └──────────────────────────────────────────────────────┘   │
+  │  ┌──────────────────────────────────────────────────────┐   │
+  │  │                  WAFER (front side)                    │   │
+  │  │  Active tiles (compute + memory + mesh)               │   │
+  │  └──────────────────────────────────────────────────────┘   │
+  │  ┌──────────────────────────────────────────────────────┐   │
+  │  │             MICROFLUIDIC CHANNEL LAYER                │   │
+  │  │                                                       │   │
+  │  │  ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐│   │
+  │  │  │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ││   │
+  │  │  │C│ │C│ │C│ │C│ │C│ │C│ │C│ │C│ │C│ │C│ │C│ │C│ ││   │
+  │  │  │H│ │H│ │H│ │H│ │H│ │H│ │H│ │H│ │H│ │H│ │H│ │H│ ││   │
+  │  │  │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ ││   │
+  │  │  └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─┘ ││   │
+  │  │  sigma = 12 microfluidic channels per tile row        │   │
+  │  │  Channel width: sigma*tau = 48 um                     │   │
+  │  │  Channel depth: sigma^2 = 144 um                      │   │
+  │  │  Flow direction: left to right (row-parallel)         │   │
+  │  └──────────────────────────────────────────────────────┘   │
+  │  ┌──────────────────────────────────────────────────────┐   │
+  │  │  BSPDN (Backside Power Delivery)                      │   │
+  │  └──────────────────────────────────────────────────────┘   │
+  │  ═══════════════════════════════════════  Cold plate (Al)    │
+  │                                                              │
+  └──────────────────────────────────────────────────────────────┘
+```
+
+### 9.3 Cooling System Parameters
+
+```
+  ┌──────────────────────────────────────────────────────────┐
+  │             HEXA-WAFER COOLING SPECS                      │
+  │                                                          │
+  │  Coolant: Deionized water (or fluorinert for dielectric) │
+  │  Inlet temp: 20C                                         │
+  │  Outlet temp: 40C (delta-T = 20C)                        │
+  │  Flow rate: 35,000W / (4.18 * 20) = 418 mL/s            │
+  │            = ~25 L/min                                    │
+  │                                                          │
+  │  Microfluidic channels per row: sigma = 12               │
+  │  Total channels: sigma * sigma = 144                     │
+  │  Channel dimensions:                                     │
+  │    Width: sigma*tau = 48 um                              │
+  │    Depth: sigma^2 = 144 um                               │
+  │    Length: ~290 mm (wafer diameter)                       │
+  │                                                          │
+  │  Pressure drop: ~200 kPa (2 atm)                        │
+  │  Pump power: ~1 kW (2.8% overhead)                      │
+  │                                                          │
+  │  Thermal resistance:                                     │
+  │    Junction to coolant: ~0.15 C/W per tile               │
+  │    Max junction temp: 20 + 240*0.15 = 56C (매우 양호)     │
+  │                                                          │
+  │  n=6 cooling parameters:                                 │
+  │    Channels per row: sigma = 12                          │
+  │    Channel width: sigma*tau = 48 um                      │
+  │    Channel depth: sigma^2 = 144 um                       │
+  │    Inlet ports: sigma = 12 (wafer left edge)             │
+  │    Outlet ports: sigma = 12 (wafer right edge)           │
+  │    Total flow paths: sigma^2 = 144                       │
+  └──────────────────────────────────────────────────────────┘
+```
+
+### 9.4 Cold Plate Sandwich Assembly
+
+```
+  Exploded Assembly View (top to bottom):
+
+  Layer 6: Top cold plate (aluminum, structural)
+  Layer 5: TIM1 (thermal interface)
+  Layer 4: Wafer front side (active circuits)
+  Layer 3: Microfluidic channels (etched into wafer back)
+  Layer 2: BSPDN (backside power delivery)
+  Layer 1: Bottom cold plate + power input connectors
+
+  n/phi = 3 functional layers:
+    Compute (Layer 4) + Cooling (Layer 3) + Power (Layer 2)
+
+  ┌───────────────────────────────────────┐
+  │ Layer 6: Top Cold Plate               │
+  │ ══════════════════════════════════════ │
+  │ Layer 5: TIM1                         │
+  │ ────────────────────────────────────── │
+  │ Layer 4: WAFER (active tiles)         │
+  │ ══════════════════════════════════════ │
+  │ Layer 3: Microfluidic Channels        │
+  │         ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐    │
+  │  IN --> │~│ │~│ │~│ │~│ │~│ │~│ --> OUT
+  │         └─┘ └─┘ └─┘ └─┘ └─┘ └─┘    │
+  │ ────────────────────────────────────── │
+  │ Layer 2: BSPDN (48V power grid)       │
+  │ ══════════════════════════════════════ │
+  │ Layer 1: Bottom Cold Plate + Power    │
+  └───────────────────────────────────────┘
+  Total stack height: ~5 mm
+  Assembly: n = 6 layers (counting structural)
+```
+
+---
+
+## 10. Fault Tolerance
+
+### 10.1 Yield Reality
+
+웨이퍼 스케일에서 100% 수율은 불가능하다.
+300mm 웨이퍼에서 defect density D ~ 0.1/cm^2 기준, 다수 결함이 존재한다.
+
+```
+  Defect analysis:
+    Wafer area: ~707 cm^2
+    Defect density (TSMC N2): ~0.1 defects/cm^2
+    Expected defects: 707 * 0.1 ~ 71 defects
+    Defects per tile: 71 / 144 ~ 0.49
+
+  Tile-level yield (Poisson model):
+    P(tile good) = exp(-D * A_tile)
+    A_tile = 5.85 cm^2
+    P(good) = exp(-0.1 * 5.85) = exp(-0.585) ~ 0.557
+
+    --> 약 55.7%의 타일만 무결함
+    --> 144 * 0.557 ~ 80 good tiles (out of 144)
+
+  이것만으로는 부족하다.
+  해법: Known-Good-Tile (KGT) 접근 + 결함 타일 비활성화 + redundancy.
+```
+
+### 10.2 Defective Tile Management
+
+```
+  Tile Status Map (example with ~80 good + ~64 defective):
+
+  Col:  0  1  2  3  4  5  6  7  8  9  10 11
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R0  | .| .| G| G| D| G| G| G| D| G| .| .|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R1  | .| G| G| D| G| G| G| G| G| D| G| .|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R2  | G| G| D| G| G| G| D| G| G| G| G| D|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R3  | G| G| G| G| D| G| G| G| G| D| G| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R4  | G| D| G| G| G| G| G| D| G| G| G| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R5  | D| G| G| G| G| G| G| G| G| G| D| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R6  | G| G| G| D| G| G| G| G| D| G| G| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R7  | G| G| D| G| G| D| G| G| G| G| G| D|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R8  | D| G| G| G| G| G| G| G| G| D| G| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R9  | G| G| G| G| D| G| G| D| G| G| G| G|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R10 | .| D| G| G| G| G| G| G| G| G| D| .|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+  R11 | .| .| G| D| G| G| G| D| G| G| .| .|
+      +--+--+--+--+--+--+--+--+--+--+--+--+
+
+  G = Good tile (active)
+  D = Defective tile (disabled, mesh routes around)
+  . = Outside wafer circle
+
+  Strategy:
+    1. Post-fab wafer-level test identifies all defective tiles
+    2. Defective tiles are power-gated OFF
+    3. Mesh routing table updated to skip disabled tiles
+    4. Global address map adjusted (non-contiguous tile IDs ok)
+```
+
+### 10.3 Minimum Functional Configuration
+
+```
+  Minimum tiles for full functionality:
+    sigma^2 - sigma = 144 - 12 = 132 tiles (91.7% yield threshold)
+
+  Why 132?
+    - 132 = sigma * (sigma - mu) = 12 * 11 = H100 SM count (BT-28!)
+    - With 132 tiles, all NUMA zones have at least sigma*n/phi=33 tiles
+    - Mesh connectivity is preserved (no isolated regions)
+    - 132 * 288 GB = 38,016 GB ~ 37.1 TB (still >5 TB for 10T model)
+
+  Yield tier classification:
+  ┌───────────────────────────────────────────────────────┐
+  │  Tier    │  Active Tiles  │  Memory   │  Grade        │
+  ├──────────┼────────────────┼───────────┼───────────────┤
+  │  Tier S  │  140-144       │  40+ TB   │  Full spec    │
+  │  Tier A  │  132-139       │  38-40 TB │  Production   │
+  │  Tier B  │  120-131       │  34-38 TB │  Reduced      │
+  │  Tier C  │  108-119       │  31-34 TB │  Budget       │
+  │  Tier D  │  < 108         │  < 31 TB  │  Reject/rework│
+  └──────────┴────────────────┴───────────┴───────────────┘
+
+  Tier thresholds:
+    S: sigma^2 - tau = 140    (97.2%)
+    A: sigma^2 - sigma = 132  (91.7%)  -- production minimum
+    B: sigma * (sigma-phi) = 120 (83.3%)
+    C: sigma * (sigma-n/phi) = 108 (75.0%)
+    D: below 108              -- salvage
+```
+
+### 10.4 Mesh Rerouting Around Defects
+
+```
+  Example: Tile T28 is defective
+
+  Before (normal mesh):
+    T27 ── T28 ── T29
+     |      |      |
+    T39 ── T40 ── T41
+
+  After (T28 disabled, rerouted):
+    T27 ──────────T29      T28 is power-gated OFF
+     |     skip    |       Mesh routes detour via
+    T39 ── T40 ── T41      T27->T39->T40->T41->T29
+
+  Rerouting adds +1 hop latency per disabled tile on path.
+  Average hop increase with K disabled tiles:
+    delta_hops ~ K / sigma ~ K / 12
+
+  With 12 disabled tiles (Tier A): delta_hops ~ 1
+    -> 1 extra hop on average, minimal impact
+
+  Routing table per tile: sigma^2 = 144 entries
+    Each entry: 4-bit direction (N/S/E/W/local/skip)
+    Total routing table: 144 * 4 = 576 bits per tile
+    Updated at boot time based on defect map
+```
+
+---
+
+## 11. AI Workload: Trillion-Parameter Models
+
+### 11.1 Model Capacity
+
+```
+  HEXA-WAFER Memory: 40.5 TB (132+ tiles)
+
+  Model size capacity (by precision):
+  ┌──────────────────────────────────────────────────────┐
+  │  Precision  │  Bytes/Param  │  Max Model Size        │
+  ├─────────────┼───────────────┼────────────────────────┤
+  │  FP32       │  4            │  10.1 T params         │
+  │  FP16/BF16  │  2            │  20.2 T params         │
+  │  FP8        │  1            │  40.5 T params         │
+  │  FP4/INT4   │  0.5          │  81 T params           │
+  │  INT2       │  0.25         │  162 T params          │
+  └─────────────┴───────────────┴────────────────────────┘
+
+  실용적 모델 배치 (FP8 training):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Component        │  Size         │  % of 40.5 TB       │
+  ├───────────────────┼───────────────┼─────────────────────┤
+  │  Model weights    │  10 TB (10T)  │  24.7%              │
+  │  Optimizer states │  20 TB (2x)   │  49.4%              │
+  │  Gradients        │  5 TB         │  12.3%              │
+  │  Activations      │  3 TB         │  7.4%               │
+  │  KV cache + misc  │  2.5 TB       │  6.2%               │
+  │  Total            │  40.5 TB      │  100%               │
+  └───────────────────┴───────────────┴─────────────────────┘
+
+  --> 10T parameter model을 단일 웨이퍼에서 FULL training 가능
+  --> 모델 병렬화가 불필요 -- communication overhead = 0
+```
+
+### 11.2 No Model Parallelism Needed
+
+```
+  현재 (multi-GPU cluster):
+  ┌──────────────────────────────────────────────────────┐
+  │  10T model training requires:                        │
+  │                                                      │
+  │  GPU memory: 80 GB per GPU (H100)                    │
+  │  GPUs needed: 10,000,000 GB / 80 = 125,000 GPUs     │
+  │  (with ZeRO-3 optimizer sharding)                    │
+  │                                                      │
+  │  Communication overhead:                              │
+  │    Tensor parallelism: 50% time in all-reduce        │
+  │    Pipeline parallelism: ~20% bubble overhead        │
+  │    Data parallelism: gradient sync every step         │
+  │                                                      │
+  │  Effective compute utilization: 30-40% (MFU)         │
+  └──────────────────────────────────────────────────────┘
+
+  HEXA-WAFER:
+  ┌──────────────────────────────────────────────────────┐
+  │  10T model on single wafer:                          │
+  │                                                      │
+  │  Memory: 40.5 TB (sufficient for full state)         │
+  │  Parallelism: pipeline only (layer -> tile mapping)  │
+  │  No tensor parallelism needed                        │
+  │  No inter-node communication                         │
+  │                                                      │
+  │  Communication: on-wafer mesh only                    │
+  │    Latency: ~10 ns (vs ~10 us for NVLink)            │
+  │    BW: 4 TB/s per link (vs 900 GB/s NVLink)         │
+  │                                                      │
+  │  Effective compute utilization: 70-80% (MFU)         │
+  │  Improvement: 2x MFU vs multi-GPU cluster            │
+  └──────────────────────────────────────────────────────┘
+```
+
+### 11.3 Training Throughput Estimation
+
+```
+  FP8 Training Throughput:
+
+  Total FP8 TFLOPS: ~10,368 (144 tiles * 72 TFLOPS/tile)
+  MFU (Model FLOPS Utilization): 75% (estimated)
+  Effective TFLOPS: 10,368 * 0.75 = 7,776
+
+  10T parameter model, single epoch:
+    FLOPS per token: ~6 * 10T = 60 TFLOPS
+    Tokens/sec: 7,776,000 GFLOPS / 60,000 GFLOPS = 129.6 tokens/sec
+    Tokens/day: 129.6 * 86400 = 11.2M tokens/day
+
+  Comparison:
+  ┌──────────────────────────────────────────────────────────┐
+  │  System             │  10T Training  │  Tokens/Day       │
+  ├─────────────────────┼────────────────┼───────────────────┤
+  │  1x H100 (80GB)     │  impossible    │  --               │
+  │  DGX H100 (8 GPU)   │  impossible    │  --               │
+  │  1024x H100 cluster │  possible      │  ~2M (est.)       │
+  │  Cerebras CS-3      │  limited mem   │  ~5M (est.)       │
+  │  HEXA-WAFER         │  single wafer  │  ~11.2M           │
+  └──────────────────────┴────────────────┴───────────────────┘
+
+  LLM inference (10T model, FP4):
+    Model in memory: 5 TB (FP4) -- fits easily
+    KV cache (2M context): ~1.5 TB
+    Batch size: sigma^2 = 144 concurrent requests
+    Latency per token: ~5 ms (estimated)
+    Throughput: 144 / 0.005 = 28,800 tokens/sec
+```
+
+---
+
+## 12. Performance Comparison
+
+### 12.1 vs HEXA-1 (Level 1)
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Metric          │  HEXA-1 (1 tile)  │  HEXA-WAFER (144) │
+  ├──────────────────┼───────────────────┼────────────────────┤
+  │  SMs             │  144              │  20,736 (144x)     │
+  │  Memory          │  288 GB           │  40.5 TB (144x)    │
+  │  FP8 TFLOPS      │  ~72              │  ~10,368 (144x)    │
+  │  FP32 TFLOPS     │  ~6.5             │  ~936 (144x)       │
+  │  Bandwidth       │  ~4 TB/s          │  ~576 TB/s (144x)  │
+  │  Power           │  240W             │  35 kW (144x)      │
+  │  Die area        │  ~585 mm^2        │  70,686 mm^2       │
+  │  Max model       │  ~144B (FP16)     │  ~20T (FP16)       │
+  │  Package         │  Standard         │  None (wafer)      │
+  └──────────────────┴───────────────────┴────────────────────┘
+
+  스케일링 팩터: sigma^2 = 144x across all compute/memory metrics
+  전력 효율 유지: 3.33 W/TFLOPS (동일)
+```
+
+### 12.2 vs Cerebras WSE-3
+
+```
+  ┌───────────────────────────────────────────────────────────────┐
+  │  Metric           │  Cerebras WSE-3    │  HEXA-WAFER          │
+  ├───────────────────┼────────────────────┼──────────────────────┤
+  │  Wafer size       │  300mm (same)      │  300mm               │
+  │  Transistors      │  4T                │  ~14.4T (est.)       │
+  │  Cores/SMs        │  900,000           │  20,736 SMs          │
+  │  Core type        │  Simple (sparse)   │  Full GPU SM         │
+  │  On-chip memory   │  44 GB SRAM        │  40.5 TB HBM4        │
+  │  External memory  │  MemoryX (1.5 TB)  │  None needed         │
+  │  Memory type      │  SRAM only on-die  │  HBM4 on-tile        │
+  │  FP16 TFLOPS      │  ~1,000 (est.)     │  ~5,000 (est.)       │
+  │  Power            │  ~23 kW            │  ~35 kW              │
+  │  Interconnect     │  2D mesh            │  2D mesh + optical   │
+  │  Approach         │  Many simple cores  │  Fewer powerful SMs  │
+  └───────────────────┴────────────────────┴──────────────────────┘
+
+  HEXA-WAFER의 차별화:
+    1. HBM4를 타일에 직접 적재 -> 40.5 TB on-wafer (vs 44 GB SRAM)
+    2. 각 타일이 full GPU SM -> tensor core, ray tracing 등 지원
+    3. Optical mesh overlay -> 장거리 latency 44x 개선
+    4. n=6 산술로 모든 파라미터가 통합 (arbitrary하지 않음)
+```
+
+### 12.3 vs NVIDIA DGX SuperPOD
+
+```
+  DGX SuperPOD = 32 DGX H100 nodes = 256 H100 GPUs
+
+  ┌───────────────────────────────────────────────────────────────┐
+  │  Metric              │  DGX SuperPOD     │  HEXA-WAFER        │
+  ├──────────────────────┼───────────────────┼────────────────────┤
+  │  GPUs/Tiles          │  256 H100         │  144 tiles         │
+  │  FP8 TFLOPS          │  ~500,000         │  ~10,368           │
+  │  Memory              │  20.5 TB          │  40.5 TB           │
+  │  Memory BW           │  ~800 TB/s        │  ~576 TB/s         │
+  │  Interconnect        │  NVLink+InfiniBand│  On-wafer mesh     │
+  │  Interconnect latency│  ~10-100 us       │  ~10-100 ns        │
+  │  Power               │  ~700 kW          │  ~35 kW            │
+  │  Physical size       │  Multiple racks   │  Single wafer      │
+  │  Cost (est.)         │  ~$15M            │  ~$5M (target)     │
+  │  Communication BW    │  ~900 GB/s/GPU    │  ~16 TB/s/tile     │
+  └──────────────────────┴───────────────────┴────────────────────┘
+
+  HEXA-WAFER 장점:
+    - 2x memory (40.5 vs 20.5 TB) -- 더 큰 모델 탑재
+    - 1000x lower interconnect latency (ns vs us)
+    - 20x lower power (35 vs 700 kW)
+    - 1 wafer vs multiple racks (물리 footprint)
+    - 10T model: no distributed overhead
+
+  DGX SuperPOD 장점:
+    - 48x more raw FP8 TFLOPS
+    - 기존 소프트웨어 생태계 (CUDA)
+    - 점진적 확장 가능 (GPU 추가)
+```
+
+### 12.4 vs Tesla Dojo
+
+```
+  ┌───────────────────────────────────────────────────────────────┐
+  │  Metric           │  Tesla Dojo D1      │  HEXA-WAFER         │
+  ├───────────────────┼─────────────────────┼─────────────────────┤
+  │  Approach         │  25 D1 dies on tile │  144 tiles on wafer │
+  │  Training die     │  645 mm^2           │  ~585 mm^2 (tile)   │
+  │  Cores per die    │  354 training nodes │  144 SMs per tile   │
+  │  On-die memory    │  160 MB SRAM/die    │  288 GB HBM/tile    │
+  │  External memory  │  HBM via I/O die    │  On-tile HBM4       │
+  │  Interconnect     │  Custom 2D mesh     │  Mesh + optical     │
+  │  Precision focus  │  BF16/FP32          │  FP4/FP8/FP16/FP32  │
+  │  Cooling          │  Liquid             │  Microfluidic       │
+  └───────────────────┴─────────────────────┴─────────────────────┘
+
+  핵심 차이:
+    Dojo = "여러 die를 타일 위에 모은" 접근 (multi-die tile)
+    HEXA-WAFER = "웨이퍼 전체를 자르지 않는" 접근 (true wafer-scale)
+    HEXA-WAFER는 HBM을 타일에 직접 통합 (Dojo는 별도 I/O die 필요)
+```
+
+---
+
+## 13. Process Technology
+
+### 13.1 Wafer-Scale Manufacturing Challenges
+
+```
+  Challenge 1: Lithography Stitching
+  ┌────────────────────────────────────────────────────────────┐
+  │                                                            │
+  │  각 타일은 하나의 reticle exposure로 패터닝된다.              │
+  │  타일 간 경계에서 배선을 "stitching"으로 연결해야 한다.       │
+  │                                                            │
+  │  ┌──────────┐ stitching ┌──────────┐                      │
+  │  │  Tile A  │ zone     │  Tile B  │                      │
+  │  │          │<──2mm──>│          │                      │
+  │  │  reticle │ overlap  │  reticle │                      │
+  │  │  shot 1  │          │  shot 2  │                      │
+  │  └──────────┘          └──────────┘                      │
+  │                                                            │
+  │  Stitching 영역: ~2mm overlap per edge                     │
+  │  배선 연결: 상위 금속 레이어 (M10-M12) 사용                   │
+  │  Stitching pitch: ~sigma*tau = 48 nm minimum               │
+  │  Links per stitch edge: ~1000 (충분한 mesh BW)             │
+  └────────────────────────────────────────────────────────────┘
+
+  Challenge 2: Defect Management (Section 10에서 상세 기술)
+    - 결함 타일 비활성화 + mesh rerouting
+    - Known-Good-Tile (KGT) 테스트 후 grade 분류
+
+  Challenge 3: Wafer Warpage
+  ┌────────────────────────────────────────────────────────────┐
+  │  300mm 웨이퍼는 ~775 um 두께                                │
+  │  전면에 수십 개 금속 레이어 + 후면에 BSPDN                    │
+  │  열팽창 차이로 warpage (휘어짐) 발생                          │
+  │                                                            │
+  │  대책:                                                      │
+  │    - 전면/후면 stress balancing                              │
+  │    - Cold plate sandwich로 물리적 구속                       │
+  │    - CTE-matched carrier wafer bonding                     │
+  │    - Max warpage spec: < sigma = 12 um                     │
+  └────────────────────────────────────────────────────────────┘
+
+  Challenge 4: Known-Good-Tile (KGT) Testing
+  ┌────────────────────────────────────────────────────────────┐
+  │  전통 칩: 다이싱 후 테스트 (KGD = Known Good Die)            │
+  │  WSE: 다이싱 하지 않으므로 웨이퍼 상태에서 테스트               │
+  │                                                            │
+  │  테스트 순서:                                                │
+  │  Step 1: Wafer-level probe test (all 144 tiles)            │
+  │  Step 2: Per-tile BIST (Built-In Self Test)                │
+  │  Step 3: Defect map generation (tile enable bitmap)        │
+  │  Step 4: Grade assignment (Tier S/A/B/C/D)                │
+  │  Step 5: Mesh routing table programming                    │
+  │  Step 6: Burn-in at operating temperature                  │
+  │                                                            │
+  │  Test time per wafer: ~sigma = 12 hours (estimated)        │
+  │  Test coverage: > 99.5%                                    │
+  └────────────────────────────────────────────────────────────┘
+```
+
+### 13.2 HBM4 Integration on Wafer
+
+```
+  HEXA-WAFER는 HBM4를 각 타일에 직접 탑재한다.
+  이것은 Cerebras WSE와의 핵심적 차이점이다.
+
+  방법: Wafer-to-Wafer Hybrid Bonding
+  ┌──────────────────────────────────────────────────────┐
+  │                                                      │
+  │  Step 1: Logic wafer 제조 (TSMC N2, 144 tiles)       │
+  │  Step 2: HBM4 wafer 별도 제조 (DRAM 공정)             │
+  │  Step 3: Hybrid bonding (Cu-Cu direct bond)          │
+  │                                                      │
+  │  ┌─────────────────────────────────────┐             │
+  │  │  HBM4 Wafer (DRAM)                  │             │
+  │  │  sigma-tau=8 stacks per tile region  │             │
+  │  │  sigma=12 layers per stack           │             │
+  │  └──────────────┬──────────────────────┘             │
+  │                 │ Hybrid bond (Cu-Cu)                 │
+  │                 │ pitch: sigma*tau=48 um              │
+  │                 │ connections: sigma*J_2=288 per mm^2  │
+  │  ┌──────────────┴──────────────────────┐             │
+  │  │  Logic Wafer (TSMC N2)               │             │
+  │  │  sigma^2=144 compute tiles           │             │
+  │  └─────────────────────────────────────┘             │
+  │                                                      │
+  │  결과: 각 타일이 288 GB HBM4를 직접 접근                │
+  │  대역폭: ~4 TB/s per tile (TSV 기반)                  │
+  │  에너지: ~2 pJ/bit (vs off-chip ~10 pJ/bit)          │
+  └──────────────────────────────────────────────────────┘
+```
+
+### 13.3 Process Node Parameters
+
+| Parameter | Value | n=6 Derivation |
+|-----------|-------|----------------|
+| Process node | TSMC N2 | -- |
+| Gate pitch | 48 nm | sigma*tau |
+| Metal pitch (M1) | 28 nm | P_2 |
+| Fin pitch | 48 nm | sigma*tau |
+| BEOL layers | 12 | sigma |
+| BSPDN layers | 4 | tau |
+| Total metal layers | 16 | phi^tau |
+| Transistor density | ~200 MTr/mm^2 | -- |
+| Transistors per tile | ~117B | 585*200M |
+| Transistors per wafer | ~14.4T | -- |
+| Vdd nominal | 0.75V | -- |
+| Gate delay | ~5 ps | -- |
+| Operating frequency | 1.5-2.0 GHz | -- |
+
+---
+
+## 14. n=6 Complete Parameter Map
+
+HEXA-WAFER의 모든 설계 파라미터가 n=6 산술에서 도출됨을 보인다.
+
+### 14.1 Structural Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  Tiles per wafer       │  144      │  sigma^2              │
+  │  SMs per tile          │  144      │  sigma^2              │
+  │  Total SMs             │  20,736   │  sigma^4              │
+  │  GPCs per tile         │  12       │  sigma                │
+  │  SMs per GPC           │  12       │  sigma                │
+  │  FP32 cores/SM         │  64       │  2^n                  │
+  │  INT8 cores/SM         │  256      │  2^(sigma-tau)        │
+  │  Tensor ops/cycle/SM   │  4,096    │  2^sigma              │
+  │  CPU cores/tile        │  12       │  sigma                │
+  │  P-cores               │  8        │  sigma-tau            │
+  │  E-cores               │  4        │  tau                  │
+  │  NPU cores/tile        │  24       │  J_2                  │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.2 Memory Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  HBM stacks/tile       │  8        │  sigma-tau            │
+  │  HBM layers/stack      │  12       │  sigma                │
+  │  HBM per stack (GB)    │  36       │  sigma*n/phi          │
+  │  HBM per tile (GB)     │  288      │  sigma*J_2            │
+  │  Total HBM (GB)        │  41,472   │  sigma^2*sigma*J_2    │
+  │  HBM interface (bits)  │  2,048    │  2^(sigma-mu)         │
+  │  L2 per tile (MB)      │  72       │  sigma*J_2/tau        │
+  │  L1/SMEM per SM (KB)   │  170      │  2^(sigma-mu)/sigma   │
+  │  Register per SM (KB)  │  256      │  2^(sigma-tau)        │
+  │  NUMA zones            │  4        │  tau                  │
+  │  Tiles per zone        │  36       │  sigma^2/tau          │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.3 Interconnect Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  Mesh dimension        │  12x12    │  sigma x sigma        │
+  │  Mesh ports/tile       │  4        │  tau                  │
+  │  Total mesh links      │  288      │  sigma*J_2            │
+  │  Per-link BW (GB/s)    │  4,096    │  2^sigma              │
+  │  Bisection BW (TB/s)   │  ~48      │  sigma*2^sigma        │
+  │  Optical wavelengths   │  12       │  sigma                │
+  │  Optical modulation    │  48 GHz   │  sigma*tau            │
+  │  Max mesh hops         │  22       │  phi*(sigma-1)        │
+  │  Avg mesh hops         │  11       │  sigma-1              │
+  │  Optical links         │  72       │  sigma^2/phi          │
+  │  Off-wafer fibers      │  48       │  sigma*tau            │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.4 Power and Cooling Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  Power/tile (W)        │  240      │  Egyptian 1/2+1/3+1/6 │
+  │  Total power (W)       │  34,560   │  sigma^2*240          │
+  │  Input voltage (V)     │  48       │  sigma*tau            │
+  │  Core voltage (V)      │  0.75     │  --                   │
+  │  I/O voltage (V)       │  1.2      │  sigma/(sigma-phi)    │
+  │  DVFS levels           │  6        │  n                    │
+  │  Power rails           │  12       │  sigma                │
+  │  BSPDN metal layers    │  4        │  tau                  │
+  │  Cooling channels/row  │  12       │  sigma                │
+  │  Channel width (um)    │  48       │  sigma*tau            │
+  │  Channel depth (um)    │  144      │  sigma^2              │
+  │  Coolant ports/edge    │  12       │  sigma                │
+  │  Total flow paths      │  144      │  sigma^2              │
+  │  Efficiency target     │  95%      │  BT-74 (PF=0.95)     │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.5 Fault Tolerance Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  Max tiles             │  144      │  sigma^2              │
+  │  Min operational tiles │  132      │  sigma*(sigma-mu)     │
+  │  Spare tiles           │  12       │  sigma                │
+  │  Yield threshold       │  91.7%    │  (sigma-mu)/sigma     │
+  │  Routing table/tile    │  144 ent  │  sigma^2              │
+  │  Tier S threshold      │  140      │  sigma^2-tau          │
+  │  Tier B threshold      │  120      │  sigma*(sigma-phi)    │
+  │  Tier C threshold      │  108      │  sigma*(sigma-n/phi)  │
+  │  Thermal sensors       │  144      │  sigma^2              │
+  │  Test time (hours)     │  12       │  sigma                │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.6 Process Parameters
+
+```
+  ┌───────────────────────────────────────────────────────────┐
+  │  Parameter             │  Value    │  n=6 Formula          │
+  ├────────────────────────┼───────────┼───────────────────────┤
+  │  Gate pitch (nm)       │  48       │  sigma*tau            │
+  │  Metal pitch M1 (nm)   │  28       │  P_2                  │
+  │  BEOL layers           │  12       │  sigma                │
+  │  BSPDN layers          │  4        │  tau                  │
+  │  Total metal           │  16       │  phi^tau              │
+  │  Hybrid bond pitch(um) │  48       │  sigma*tau            │
+  │  TSV per mm^2          │  288      │  sigma*J_2            │
+  │  Stitch overlap (mm)   │  2        │  phi                  │
+  │  Wafer thickness (um)  │  775      │  (standard)           │
+  │  Max warpage (um)      │  12       │  sigma                │
+  └────────────────────────┴───────────┴───────────────────────┘
+```
+
+### 14.7 n=6 Identity Verification
+
+```
+  Core identity: sigma(n)*phi(n) = n*tau(n)  <=>  n = 6
+    sigma*phi = 12*2 = 24
+    n*tau = 6*4 = 24  -->  24 = 24  (J_2 = 24)
+
+  Wafer-level identity:
+    Total mesh links = sigma*J_2 = sigma*sigma*phi = sigma^2*phi
+    = 144*2 = 288
+
+    Tiles * ports = sigma^2 * tau = 144*4 = 576
+    Internal links = 576/2 = 288 = sigma*J_2  (consistent)
+
+  Memory identity:
+    Total HBM = sigma^2 * sigma*J_2 (GB) = sigma^3*J_2
+    = 1728*24 = 41,472 GB
+    = sigma^3 * sigma * phi * tau  (expanding J_2 = sigma*phi)
+    -- all factors of 6 and its arithmetic functions
+
+  Power identity:
+    Total power = sigma^2 * (1/2+1/3+1/6) * 240
+    Egyptian: 1/2+1/3+1/6 = 1 (unique for n=6)
+    35 kW = sigma^2 * 240 W per Egyptian tile
+```
+
+---
+
+## 15. Open Questions / TODO
+
+### 15.1 Engineering Challenges
+
+```
+  ┌───┬──────────────────────────────────────┬──────────┬─────────────┐
+  │ # │  Challenge                           │  Status  │  Priority   │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 1 │  HBM4 wafer-to-wafer hybrid bonding │  미시작   │  CRITICAL   │
+  │   │  yield impact on large-area bond    │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 2 │  35 kW microfluidic cooling at      │  미시작   │  CRITICAL   │
+  │   │  uniform temperature across 300mm   │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 3 │  Backside PDN for 729A at 48V       │  미시작   │  HIGH       │
+  │   │  IR drop < 5% uniformity            │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 4 │  On-wafer optical mesh integration  │  미시작   │  HIGH       │
+  │   │  SiN photonic layer compatibility   │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 5 │  Stitching zone reliability at      │  미시작   │  MEDIUM     │
+  │   │  sigma*tau=48nm pitch               │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 6 │  Software: NUMA-aware scheduler     │  미시작   │  MEDIUM     │
+  │   │  for 144-tile mesh topology         │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 7 │  KGT test time optimization         │  미시작   │  LOW        │
+  │   │  (target: < sigma=12 hours)         │          │             │
+  ├───┼──────────────────────────────────────┼──────────┼─────────────┤
+  │ 8 │  Wafer warpage control under        │  미시작   │  LOW        │
+  │   │  thermal cycling (< sigma=12 um)    │          │             │
+  └───┴──────────────────────────────────────┴──────────┴─────────────┘
+```
+
+### 15.2 Research Directions
+
+```
+  1. HEXA-WAFER + HEXA-PHOTON 통합 (Level 4+5):
+     - On-wafer photonic tiles for matrix multiply
+     - 광 mesh가 전기 mesh를 대체할 가능성
+
+  2. HEXA-WAFER + HEXA-3D (Level 3+5):
+     - 3D stacked compute-on-memory tiles on wafer
+     - 타일당 메모리 10x 확장 (288 GB -> 2.88 TB)
+     - 총 메모리: 144 * 2.88 TB = 414 TB
+
+  3. Multi-wafer system:
+     - n/phi = 3 wafers 연결 (compute + memory + I/O)
+     - 또는 sigma=12 wafers for exascale
+     - 웨이퍼 간 연결: optical fiber bundles
+
+  4. Chiplet migration path:
+     - HEXA-WAFER를 바로 구현하기 어려우면
+     - sigma=12 chiplets on interposer (intermediate step)
+     - BT-69: Chiplet convergence (B300=160 SMs)
+
+  5. Software ecosystem:
+     - CUDA/ROCm 호환 드라이버
+     - 144-tile aware memory allocator
+     - Pipeline parallelism compiler (자동 layer-to-tile 매핑)
+     - NUMA-aware ML framework integration
+```
+
+### 15.3 Cost Estimation
+
+```
+  TSMC N2 wafer cost (estimated): ~$25,000-30,000
+  HBM4 wafer cost (estimated): ~$15,000-20,000
+  Hybrid bonding + packaging: ~$5,000-10,000
+  Cooling assembly: ~$2,000-5,000
+  Test + grade: ~$3,000-5,000
+
+  Total estimated cost per wafer-chip: $50,000-70,000
+
+  Comparison:
+    NVIDIA H100 GPU: ~$25,000-30,000 (retail)
+    8x H100 (DGX equivalent): ~$200,000-250,000
+    Cerebras CS-3: ~$2,000,000-3,000,000 (system)
+
+  HEXA-WAFER 가격/성능:
+    $70K for 40.5 TB + 10,368 TFLOPS
+    vs $250K for 640 GB + ~13,000 TFLOPS (8x H100)
+    --> 63x more memory at 28% of cost
+```
+
+---
+
+## 16. Links
+
+### 16.1 Internal References
+
+- [HEXA-1 Spec](ultimate-unified-soc.md) -- Level 1 baseline tile architecture
+- [Goal Roadmap](goal.md) -- Full Level 1-6 evolution ladder
+- [BT-28: Computing Architecture Ladder](../breakthrough-theorems.md) -- SM counts, HBM stacks
+- [BT-55: GPU HBM Capacity Ladder](../breakthrough-theorems.md) -- Memory derivations
+- [BT-69: Chiplet Architecture Convergence](../breakthrough-theorems.md) -- Multi-die trends
+- [BT-75: HBM Interface Exponent Ladder](../breakthrough-theorems.md) -- HBM interface widths
+- [BT-76: sigma*tau=48 Triple Attractor](../breakthrough-theorems.md) -- Gate pitch, voltage
+
+### 16.2 External References
+
+- Cerebras WSE-3: https://www.cerebras.net/product-chip/
+- Tesla Dojo: https://en.wikipedia.org/wiki/Tesla_Dojo
+- TSMC N2 BSPDN: https://www.tsmc.com/english/dedicatedFoundry/technology/logic/l_2nm
+- Wafer-Scale Integration (IEEE): historical and modern approaches
+- Hybrid Bonding (IEDM): Cu-Cu direct bond at sub-micron pitch
+
+### 16.3 Theorem Foundation
+
+```
+  sigma(n) * phi(n) = n * tau(n)  <=>  n = 6
+
+  For HEXA-WAFER:
+    sigma^2 = 144 tiles     (scale wall broken)
+    sigma^4 = 20,736 SMs    (compute wall broken)
+    40.5 TB on-wafer memory  (memory wall broken)
+    35 kW Egyptian power     (energy wall managed)
+
+  All from one equation. All from n = 6.
+```
+
+---
+
+*HEXA-WAFER: 300mm 실리콘 위에 n=6의 완전한 컴퓨팅 세계를 구현한다.*
+*sigma(n)*phi(n) = n*tau(n) <=> n = 6*

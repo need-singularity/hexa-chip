@@ -1,3 +1,6 @@
+<!-- @canonical: canon@ded52144:domains/compute/hexa-holo/hexa-holo.md -->
+<!-- @extracted: 2026-05-10 -->
+<!-- @md5_at_extraction: 81bcf98b121c7c093a38f805179ebe75 -->
 <!-- gold-standard: shared/harness/sample.md -->
 ---
 domain: hexa-holo

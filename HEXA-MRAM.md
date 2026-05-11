@@ -1,3 +1,6 @@
+<!-- @canonical: canon@ded52144:domains/compute/hexa-mram/hexa-mram.md -->
+<!-- @extracted: 2026-05-10 -->
+<!-- @md5_at_extraction: b5f0e78c3df127c814012fc4f74f24b9 -->
 <!-- gold-standard: shared/harness/sample.md -->
 ---
 domain: hexa-mram
