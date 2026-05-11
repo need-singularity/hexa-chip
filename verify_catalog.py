@@ -32,8 +32,8 @@ T1_GROUPS: dict[str, list[str]] = {
     "consciousness":  ["conscious_chip", "conscious_soc"],
 }
 
-# Tier 2 envelopes.
-T2_DIRS = {"terafab", "exynos"}
+# Tier 2 envelopes. (Wave I added tsmc + intel.)
+T2_DIRS = {"terafab", "exynos", "tsmc", "intel"}
 # Tier 3 runtime. (Wave H added .github; Wave J added chip-verify, promoted from T4.)
 T3_DIRS = {"cli", "verify", "tests", "firmware", "state", ".github", "chip-verify"}
 # Tier 4 knowledge.

@@ -221,6 +221,102 @@ is unaffected. The 34/36 (94.4%) boot-matrix headline from
   Samsung/SK·Hynix/TSMC/Intel internal material. Every numeric trace
   to n=6 primitives (σ=12, τ=4, φ=2, sopfr=5, J₂=24) + LCG seed=42.
 
+### Added (2026-05-12 — Wave I: TSMC + Intel meta-domain envelopes)
+
+Two new T2 meta-domain envelopes promoted to `SPEC_PLUS_RUNNABLE`,
+mirroring the Terafab (Wave 6) + Exynos (Wave 7) pattern. **Zero new
+external claims** — every figure traces to public TSMC IR / Symposium /
+Arizona Commerce / SEC 6-K (TSMC) and Intel 10-K / Foundry Direct
+Connect / Ohio One state filings / EU Chips Act / CHIPS Act award /
+SemiAnalysis-public-side (Intel) disclosures. The 29-verb / 6-group
+surface and the v1.0.0 closure verdict are unchanged.
+
+- `tsmc/tsmc.md` (~620) — 15-section meta-domain spec; pure-play
+  foundry leader anchor (TSMC TW Hsinchu / TSMC Arizona Fab 21 / N3 /
+  N2 / A16 / A14 / OIP / 3DFabric). Falsifier register F-TSMC-1..7
+  (foundry market share durability / N2 customer breadth / Arizona N2
+  HVM schedule / CoWoS capacity ramp / pure-play charter durability /
+  A14 HVM schedule / Arizona-as-geopolitical-hedge thesis).
+- `tsmc/verify_tsmc.py` (~240) — stdlib-only falsifier dispatcher;
+  8/8 HARD PASS + 6 DEFERRED Mk.II (n=6 identity / group count /
+  Egyptian split / TSMC capex didactic / Arizona Fab 21 capex
+  didactic / N3→N2 39-mo cadence honesty / N2 nm=φ coincidence /
+  F-TSMC-7 χ² band p≈0.87).
+- `tsmc/sources.md` (~390) — 18-source citation database
+  (SRC-TSMC-001..018) covering TSMC IR + Symposium + press + SEC 6-K
+  + Arizona Commerce + CHIPS Act + ESMC Dresden + JASM Kumamoto +
+  TrendForce + Counterpoint + IDC + DigiTimes + Nikkei Asia + IEEE
+  IEDM + Wikipedia + Hsinchu Science Park + Samsung Forum + Intel
+  Foundry Direct Connect (competitor).
+- `tsmc/CLOSURE.md` (~205) — closure declaration; verdict
+  `SPEC_PLUS_RUNNABLE`; 7-section honesty audit; no NDA / no
+  proprietary PDK / no SOW-protected partnership detail.
+- `tsmc/README.md` (~150) — navigation index with status badges +
+  quick-recall facts + falsifier summary + cross-link.
+
+- `intel/intel.md` (~620) — 15-section meta-domain spec; IDM-foundry-
+  pivot anchor (Intel 18A RibbonFET+PowerVia / 14A High-NA EUV / IFS
+  external-customer pivot / Tower acquisition terminated / Ohio One
+  slipped / Magdeburg paused / Tan-replaces-Gelsinger CEO transition).
+  Falsifier register F-INTEL-1..7 (18A external customer count /
+  Panther Lake schedule / 14A first-customer = Tesla via Terafab —
+  cross-link F-TERAFAB-6 / Magdeburg unpause vs cancel binary / IFS
+  revenue $5B/yr by 2030 / Ohio One Phase 1 HVM — cross-link F-TSMC-3
+  / Intel corporate survival 2033 terminal).
+- `intel/verify_intel.py` (~240) — stdlib-only falsifier dispatcher;
+  8/8 HARD PASS + 6 DEFERRED Mk.II (n=6 identity / group count /
+  Egyptian split / Intel capex didactic / 5-nodes-4-years honest
+  20A-cancellation register / 18A→14A 18-mo cadence aggression /
+  Ohio One 2-year-slip honesty / F-INTEL-7 χ² band p≈0.90).
+- `intel/sources.md` (~390) — 18-source citation database
+  (SRC-INTEL-001..018) covering Intel IR + SEC EDGAR 10-K + Foundry
+  Direct Connect + press + Ohio Licking County + JobsOhio + CHIPS Act
+  + EU Magdeburg + TrendForce + Counterpoint + Mercury Research + The
+  Register + Tom's Hardware + SemiAnalysis public-side (paid-tier
+  explicitly excluded) + AnandTech archive + IEEE IEDM + Wikipedia.
+- `intel/CLOSURE.md` (~205) — closure declaration; verdict
+  `SPEC_PLUS_RUNNABLE`; 7-section honesty audit; explicit
+  cross-envelope falsifier-link registry (F-INTEL-3 ↔ F-TERAFAB-6;
+  F-INTEL-6 ↔ F-TSMC-3).
+- `intel/README.md` (~150) — navigation index with status badges +
+  quick-recall facts + falsifier summary + cross-link.
+
+- `terafab/cross_doc_audit.py` — extended to audit
+  `[meta_domains.tsmc]` + `[meta_domains.intel]` blocks (mirroring
+  the Wave 7 Exynos extension). Asserts (1) tsmc.md / intel.md exist;
+  (2) README.md exists for each; (3) absorbs[] = 6-group set for
+  each; (4) F-TSMC / F-INTEL count = hexa.toml falsifier_count;
+  (5) `[meta_domain_closure]` aggregates updated: `envelopes_total =
+  4`, `envelopes_wired = 4`, `envelopes_audited = 4`, `falsifiers_total
+  = 31`. Sentinel: `ALL FACTS AGREE — Terafab + Exynos + TSMC +
+  Intel cross-doc audit PASS`.
+- `hexa.toml` — added `[meta_domains.tsmc]` + `[meta_domains.intel]`
+  blocks (each absorbs same 6 groups; falsifier_count = 7 each;
+  nda_content = false); bumped `[meta_domain_closure]` aggregates
+  (envelopes 2→4, falsifiers 17→31, wired/audited 2→4); registered
+  cross-envelope falsifier-link annotation in the closure caveat.
+- `verify_catalog.py` — added `tsmc` + `intel` to `T2_DIRS` so C1
+  (filesystem ⊆ tiers ⊆ filesystem ∪ cited) recognises both new
+  directories as registered T2 envelopes.
+- `CATALOG.md` — T2 ENVELOPE table rows added for `tsmc/` + `intel/`
+  at `SPEC_PLUS_RUNNABLE`; tier-count text updated `2 dirs → 4 dirs`;
+  meta-domain count `2 → 4`; closure-verdict-line added for both
+  new envelopes; four-envelope topology differentiation paragraph
+  added (TSMC = reference, Intel = mid-pivot bridge, Terafab =
+  greenfield outlier, Exynos = historical-precedent IDM).
+
+External outreach dossiers (ticket-out, separate commit):
+- `07_outreach/_projects/hexa-chip-tsmc.{en,ko}.md` — D-option
+  full-source-coverage SSCB dossier; mirrors Terafab + Exynos build
+  pattern (build_full_repo_en.sh + build_full_repo.sh).
+- `07_outreach/_projects/hexa-chip-intel.{en,ko}.md` — same.
+
+Closure caveat (Mk.I honesty): F-TSMC-1..6 + F-INTEL-1..6 are
+bench-only at Mk.I; data-arrival pending 2026-Q3+ quarterly IR / 10-K
+/ Direct Connect / Symposium / Arizona-Ohio state filings.
+F-TSMC-7 and F-INTEL-7 χ² are both Mk.I-weak (p≈0.87 and p≈0.90);
+reformulation deferred to Mk.II per each envelope's roadmap.
+
 ### Added (2026-05-12 — Wave G: Mk.II falsifier monitoring infrastructure)
 
 Data-arrival pipeline that feeds `F-TERAFAB-1..10` from public sources

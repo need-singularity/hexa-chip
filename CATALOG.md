@@ -37,7 +37,7 @@ document **classifies** without **moving**.
 |------|------|------:|---------------|--------------------|
 | **T0** | META (root manifest + closure) | 13 files | source-of-truth | keep, never move |
 | **T1** | MODULES (canonical 29-verb / 6-group) | 29 dirs | v1.0.0 frozen | keep, do not rename |
-| **T2** | ENVELOPE (meta-domains wrapping T1) | 2 dirs | own closure | extend per envelope |
+| **T2** | ENVELOPE (meta-domains wrapping T1) | 4 dirs | own closure | extend per envelope |
 | **T3** | RUNTIME (execution surface) | 7 dirs | runnable witness | maintain |
 | **T4** | KNOWLEDGE (research + verify-harness + proposals) | 4 dirs | reference-only | preserve provenance |
 | **T5** | DEFERRED (30+ verb candidates) | 3 dirs | v1.1.0+ staged | keep gated, do not promote yet |
@@ -112,18 +112,24 @@ Outer wrappers absorbing external observations onto the 6-group surface. Do **no
 |-----|------|---------|-----------:|------:|
 | `terafab/` | Musk vertically-integrated megafab | `SPEC_PLUS_RUNNABLE` | F-TERAFAB-1..10 | ~5,800 |
 | `exynos/` | Samsung Korean-fab heritage envelope | `SPEC_PLUS_RUNNABLE` | F-EXYNOS-1..7 | ~1,400 |
+| `tsmc/` | TSMC pure-play-foundry-leader envelope | `SPEC_PLUS_RUNNABLE` | F-TSMC-1..7 | ~1,400 |
+| `intel/` | Intel IDM-foundry-pivot envelope | `SPEC_PLUS_RUNNABLE` | F-INTEL-1..7 | ~1,400 |
 
-**Registration**: `hexa.toml [meta_domains.terafab]` (Wave 6) and `[meta_domains.exynos]` (Wave 7) register both envelopes explicitly. Both share the 15-section grammar; `exynos/exynos.md` was upgraded from a single-file placeholder to a full envelope at Wave 7 (mirroring the Terafab pattern: spec doc + verify_*.py + sources.md + CLOSURE.md + README.md + cross-doc audit integration).
+**Registration**: `hexa.toml [meta_domains.terafab]` (Wave 6), `[meta_domains.exynos]` (Wave 7), `[meta_domains.tsmc]` (Wave I), and `[meta_domains.intel]` (Wave I) register all four envelopes explicitly. All four share the 15-section grammar; each ships with the same skeleton: spec doc + verify_*.py + sources.md + CLOSURE.md + README.md + cross-doc audit integration.
 
-**Mk.II auto-trigger CI** (Wave H, 2026-05-12): both envelopes now have an auto-trigger CI layer in `.github/workflows/`. Terafab `poll_mk2.py` (Wave G) and exynos `poll_exynos_mk2.py` (Wave H) run quarterly under `mk2-poll.yml` (cron 09:00 UTC on the 1st of Jan/Apr/Jul/Oct); when new observations land the workflow opens a PR labelled `auto-poll`, `falsifier-mk2`. The PR-time `mk2-verify.yml` gates merges by running all 5 verify scripts (terafab/verify_terafab.py + cross_doc_audit.py + exynos/verify_exynos.py + verify_catalog.py + tests/test_terafab_meta.py) plus `make mk2-check`. Until 2026-Q3 real data arrives, every poll cycle is a NO-OP by design.
+**Mk.II auto-trigger CI** (Wave H, 2026-05-12): both Terafab + Exynos envelopes have an auto-trigger CI layer in `.github/workflows/`. Terafab `poll_mk2.py` (Wave G) and exynos `poll_exynos_mk2.py` (Wave H) run quarterly under `mk2-poll.yml` (cron 09:00 UTC on the 1st of Jan/Apr/Jul/Oct); when new observations land the workflow opens a PR labelled `auto-poll`, `falsifier-mk2`. The PR-time `mk2-verify.yml` gates merges by running all 5 verify scripts (terafab/verify_terafab.py + cross_doc_audit.py + exynos/verify_exynos.py + verify_catalog.py + tests/test_terafab_meta.py) plus `make mk2-check`. Until 2026-Q3 real data arrives, every poll cycle is a NO-OP by design. **TSMC + Intel envelopes (Wave I)** do not yet ship a `poll_*_mk2.py` — their Mk.II monitoring scaffold is on the Wave I+1 backlog; `verify_tsmc.py` and `verify_intel.py` ship in the same Mk.I bench-only posture as exynos at Wave 7.
 
-**Stake**: T2 envelopes absorb external pressure (industry events, fab announcements) without polluting the canonical T1 surface. Each owns a runnable falsifier register (Terafab: F-TERAFAB-1..10 / Exynos: F-EXYNOS-1..7). The two envelopes are complementary — Terafab encodes the greenfield-vertical-megafab topology (Musk/Intel announce 2026); Exynos encodes the brownfield-IDM-heritage topology (Samsung 40-year IDM, public sources only, no NDA).
+**Stake**: T2 envelopes absorb external pressure (industry events, fab announcements) without polluting the canonical T1 surface. Each owns a runnable falsifier register (Terafab: F-TERAFAB-1..10 / Exynos: F-EXYNOS-1..7 / TSMC: F-TSMC-1..7 / Intel: F-INTEL-1..7). The four envelopes are complementary — they encode the four publicly-observed fab topologies: Terafab = greenfield-vertical-megafab (Musk/Intel announce 2026); Exynos = brownfield-IDM-heritage (Samsung 40-year IDM); TSMC = pure-play-foundry-leader (TSMC 39-year, ≈ 61 % global foundry share); Intel = IDM-foundry-pivot (IDM 2.0 announce 2021-03, IFS rebrand 2024-Q1, Ohio + Magdeburg in-flight). **Differentiation**: TSMC anchors the *reference* topology against which the other three are measured; Intel anchors the only *mid-pivot* topology (the structural bridge between Exynos full-IDM and TSMC pure-play); Terafab anchors the *greenfield* outlier; Exynos anchors the *historical-precedent* IDM. Cross-envelope falsifier links: F-TERAFAB-6 ↔ F-INTEL-3 (Tesla on Intel 14A via Terafab; same physical fact); F-TSMC-3 ↔ F-INTEL-6 (US-sovereign-fab schedule signal, Arizona Fab 21 Phase 2 vs Ohio One Phase 1). Public sources only across all four envelopes — zero NDA / zero internal / zero proprietary PDK / zero SOW-protected partnership detail.
 
-**Action**: extend each envelope's closure independently. Future envelopes (e.g. TSMC, Intel, Rapidus) register under `[meta_domains.<name>]` and inherit the Terafab+Exynos pattern (15-section + runnable verify + cross-doc audit).
+**Action**: extend each envelope's closure independently. Future envelopes (e.g. Rapidus, SMIC, GlobalFoundries) register under `[meta_domains.<name>]` and inherit the Terafab+Exynos+TSMC+Intel pattern (15-section + runnable verify + cross-doc audit).
 
 **External SSCB-grade dossier** (Terafab): `~/core/ticket-out/07_outreach/_projects/hexa-chip-terafab.{en,ko}.md` — D-option full-source-coverage outreach dossier (160 sections / 5,800 lines per edition) embedding all 21 `terafab/` files in path-sorted full inclusion. Published to <https://github.com/dancinlab/ticket-out> at commit `9773c35` (2026-05-12). Forbidden-token check + Korean-residue check both PASS.
 
 **External SSCB-grade dossier** (Exynos, Wave 7): `~/core/ticket-out/07_outreach/_projects/hexa-chip-exynos.{en,ko}.md` — D-option full-source-coverage outreach dossier embedding all 5 `exynos/` files in path-sorted full inclusion. Target recipient: Samsung Foundry Forum / Samsung Electronics Memory Business / SK hynix / Korean academia (KAIST/SNU/POSTECH device labs) / IEEE EDS Korea Chapter. Forbidden-token check + Korean-residue check both PASS in `.en.md`.
+
+**External SSCB-grade dossier** (TSMC, Wave I): `~/core/ticket-out/07_outreach/_projects/hexa-chip-tsmc.{en,ko}.md` — D-option full-source-coverage outreach dossier embedding all 5 `tsmc/` files in path-sorted full inclusion. Target recipient: TSMC Technology Symposium / TSMC R&D / OIP partner ecosystem (Cadence / Synopsys / Siemens) / Hsinchu academia (NTU / NCKU / NCTU device labs) / IEEE EDS Taiwan Chapter. Forbidden-token check + Korean-residue check both PASS in `.en.md`.
+
+**External SSCB-grade dossier** (Intel, Wave I): `~/core/ticket-out/07_outreach/_projects/hexa-chip-intel.{en,ko}.md` — D-option full-source-coverage outreach dossier embedding all 5 `intel/` files in path-sorted full inclusion. Target recipient: Intel Foundry Direct Connect / Intel R&D Hillsboro / IFS external-customer team / Ohio One campus communications / US Commerce CHIPS Act program office / IEEE EDS US chapters. Forbidden-token check + Korean-residue check both PASS in `.en.md`.
 
 ---
 
@@ -346,7 +352,7 @@ In rough priority / cost order:
 | Tiers | 7 (T0..T6) |
 | Canonical verbs | 29 (T1) |
 | Canonical groups | 6 (T1) |
-| Meta-domains | 2 (T2: terafab + exynos) |
+| Meta-domains | 4 (T2: terafab + exynos + tsmc + intel) |
 | Runtime dirs | 7 (T3 — Wave H added `.github/`, Wave J promoted `chip-verify/`) |
 | Knowledge dirs | 4 (T4 — Wave J removed chip-verify) |
 | Deferred candidates | 3 (T5) |
@@ -355,6 +361,8 @@ In rough priority / cost order:
 | Closure verdict (T1) | `SPEC_PLUS_RUNNABLE` (v1.0.0) |
 | Closure verdict (T2-terafab) | `SPEC_PLUS_RUNNABLE` (Wave 6.x) |
 | Closure verdict (T2-exynos) | `SPEC_PLUS_RUNNABLE` (Wave 7) |
+| Closure verdict (T2-tsmc)   | `SPEC_PLUS_RUNNABLE` (Wave I) |
+| Closure verdict (T2-intel)  | `SPEC_PLUS_RUNNABLE` (Wave I) |
 | Closure verdict (T3-chip-verify) | `SPEC_PLUS_RUNNABLE` (Wave J — 34/36 = 94.4% headline) |
 | Authority file | `hexa.toml` |
 | Last classified | 2026-05-12 |

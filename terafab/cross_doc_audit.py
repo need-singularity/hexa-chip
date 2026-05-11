@@ -383,13 +383,125 @@ def audit() -> tuple[int, list[str]]:
         else:
             log.append("  [DEFERRED] exynos/sources.md not present — URL cross-check skipped")
 
-    # --- E5. meta_domain_closure aggregates correctly ------------------
+    # ── Wave I: extended audit for tsmc sister envelope ──────────────────
+    TSMC    = REPO / "tsmc"  / "tsmc.md"
+    TREADME = REPO / "tsmc"  / "README.md"
+    log.append("  " + "-" * 68)
+    log.append("  [WAVE I] tsmc sister envelope audit")
+    log.append("  " + "-" * 68)
+
+    tsmc_txt    = read(TSMC)
+    treadme_txt = read(TREADME)
+
+    # --- T1. tsmc.md must exist ----------------------------------------
+    if not tsmc_txt:
+        log.append("  [FAIL] tsmc/tsmc.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   tsmc.md             ({len(tsmc_txt):>6} bytes)")
+
+    # --- T2. tsmc/README.md must exist ---------------------------------
+    if not treadme_txt:
+        log.append("  [FAIL] tsmc/README.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   tsmc/README.md      ({len(treadme_txt):>6} bytes)")
+
+    # --- T3. [meta_domains.tsmc].absorbs invariant ---------------------
+    t_absorbs = (
+        toml_data.get("meta_domains", {})
+                 .get("tsmc", {})
+                 .get("absorbs", [])
+    )
+    if len(t_absorbs) != 6:
+        log.append(f"  [FAIL] [meta_domains.tsmc].absorbs len={len(t_absorbs)} (expected 6)")
+        fails += 1
+    elif sorted(t_absorbs) != sorted(EXPECTED_GROUPS):
+        log.append(f"  [FAIL] [meta_domains.tsmc].absorbs != expected groups "
+                   f"(got {t_absorbs})")
+        fails += 1
+    else:
+        log.append(f"  [OK]   [meta_domains.tsmc].absorbs = {t_absorbs}")
+
+    # --- T4. F-TSMC-* falsifier count agreement ------------------------
+    t_count_md = len(set(re.findall(r"F-TSMC-\d+", tsmc_txt))) if tsmc_txt else 0
+    t_count_toml = (
+        toml_data.get("meta_domains", {})
+                 .get("tsmc", {})
+                 .get("falsifier_count", -1)
+    )
+    log.append(f"  [INFO] F-TSMC unique IDs — tsmc.md: {t_count_md}, "
+               f"hexa.toml: {t_count_toml}")
+    if t_count_md != t_count_toml:
+        log.append(f"  [FAIL] F-TSMC count mismatch: "
+                   f"tsmc.md={t_count_md} vs hexa.toml={t_count_toml}")
+        fails += 1
+    else:
+        log.append(f"  [OK]   F-TSMC count matches: {t_count_md} (tsmc.md ≡ hexa.toml)")
+
+    # ── Wave I: extended audit for intel sister envelope ────────────────
+    INTEL    = REPO / "intel" / "intel.md"
+    IREADME  = REPO / "intel" / "README.md"
+    log.append("  " + "-" * 68)
+    log.append("  [WAVE I] intel sister envelope audit")
+    log.append("  " + "-" * 68)
+
+    intel_txt    = read(INTEL)
+    ireadme_txt  = read(IREADME)
+
+    # --- I1. intel.md must exist ---------------------------------------
+    if not intel_txt:
+        log.append("  [FAIL] intel/intel.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   intel.md            ({len(intel_txt):>6} bytes)")
+
+    # --- I2. intel/README.md must exist --------------------------------
+    if not ireadme_txt:
+        log.append("  [FAIL] intel/README.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   intel/README.md     ({len(ireadme_txt):>6} bytes)")
+
+    # --- I3. [meta_domains.intel].absorbs invariant --------------------
+    i_absorbs = (
+        toml_data.get("meta_domains", {})
+                 .get("intel", {})
+                 .get("absorbs", [])
+    )
+    if len(i_absorbs) != 6:
+        log.append(f"  [FAIL] [meta_domains.intel].absorbs len={len(i_absorbs)} (expected 6)")
+        fails += 1
+    elif sorted(i_absorbs) != sorted(EXPECTED_GROUPS):
+        log.append(f"  [FAIL] [meta_domains.intel].absorbs != expected groups "
+                   f"(got {i_absorbs})")
+        fails += 1
+    else:
+        log.append(f"  [OK]   [meta_domains.intel].absorbs = {i_absorbs}")
+
+    # --- I4. F-INTEL-* falsifier count agreement -----------------------
+    i_count_md = len(set(re.findall(r"F-INTEL-\d+", intel_txt))) if intel_txt else 0
+    i_count_toml = (
+        toml_data.get("meta_domains", {})
+                 .get("intel", {})
+                 .get("falsifier_count", -1)
+    )
+    log.append(f"  [INFO] F-INTEL unique IDs — intel.md: {i_count_md}, "
+               f"hexa.toml: {i_count_toml}")
+    if i_count_md != i_count_toml:
+        log.append(f"  [FAIL] F-INTEL count mismatch: "
+                   f"intel.md={i_count_md} vs hexa.toml={i_count_toml}")
+        fails += 1
+    else:
+        log.append(f"  [OK]   F-INTEL count matches: {i_count_md} (intel.md ≡ hexa.toml)")
+
+    # --- E5/Wave-I. meta_domain_closure aggregates correctly ------------
     mdc = toml_data.get("meta_domain_closure", {})
     expected_aggregates = {
-        "envelopes_total": 2,
-        "envelopes_wired": 2,
-        "envelopes_audited": 2,
-        "falsifiers_total": 17,
+        "envelopes_total": 4,
+        "envelopes_wired": 4,
+        "envelopes_audited": 4,
+        "falsifiers_total": 31,
         "groups_wrapped": 6,
         "verdict": "SPEC_PLUS_RUNNABLE",
         "verb_surface_unchanged": True,
@@ -497,7 +609,7 @@ def audit() -> tuple[int, list[str]]:
 
     log.append("=" * 72)
     if fails == 0:
-        log.append("  ALL FACTS AGREE — Terafab + Exynos + chip-verify cross-doc audit PASS")
+        log.append("  ALL FACTS AGREE — Terafab + Exynos + TSMC + Intel + chip-verify cross-doc audit PASS")
     else:
         log.append(f"  {fails} disagreement(s) — see [FAIL] lines above")
     log.append("=" * 72)

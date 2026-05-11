@@ -88,6 +88,41 @@ falsifier_count = 7      # F-EXYNOS-1..7
 nda_content = false
 note = "Outer envelope wrapping the 6 hexa-chip groups under Samsung Exynos/Foundry heritage; NOT a verb. Public sources only (Samsung Foundry Forum / IR / IEEE / Korean tech press / TSMC-Intel earnings); zero NDA / zero Samsung-internal data."
 
+# ── Meta-domain envelope (tsmc) ────────────────────────────
+# Sister envelope #3. TSMC pure-play-foundry-leader anchor.
+# TSMC IR / Annual Report / Symposium 2024-2025 / Arizona Commerce /
+# SEC 6-K / IEEE/IEDM / DigiTimes / TrendForce / Nikkei Asia 의
+# 외부 공시값만 흡수한 envelope (TSMC NDA / 내부 자료 / SOW-보호
+# partnership / PDK 일체 없음). 29-verb / 6-group 카운트는 변경하지
+# 않는다 — 외피로만 등록. Wave I (2026-05-12).
+[meta_domains.tsmc]
+absorbs = ["architecture", "design", "process", "packaging", "accelerator", "consciousness"]
+type = "pure-play-foundry-leader"
+source = "public-source absorption (2026-05-12)"
+entry = "tsmc/tsmc.md"
+falsifier_count = 7      # F-TSMC-1..7
+nda_content = false
+note = "Outer envelope wrapping the 6 hexa-chip groups under TSMC pure-play foundry leadership; NOT a verb. Public sources only (TSMC IR / Symposium / Arizona Commerce / SEC 6-K / EU/Japan JV / IEEE / DigiTimes / TrendForce / Nikkei Asia); zero NDA / zero TSMC-internal data / zero proprietary PDK / zero SOW-protected partnership detail."
+
+# ── Meta-domain envelope (intel) ───────────────────────────
+# Sister envelope #4. Intel IDM-foundry-pivot anchor.
+# Intel 10-K (SEC EDGAR) / Investor Day / Foundry Direct Connect 2024-2025 /
+# Ohio One 공시 / Magdeburg paused 공시 / IEEE/IEDM / The Register /
+# Tom's Hardware / SemiAnalysis (public-side only) 의 외부 공시값만
+# 흡수한 envelope (Intel NDA / 내부 자료 / SOW-보호 partnership 일체
+# 없음). 29-verb / 6-group 카운트는 변경하지 않는다 — 외피로만
+# 등록. Wave I (2026-05-12).
+# F-INTEL-3 ↔ F-TERAFAB-6 cross-link (Tesla on Intel 14A via Terafab);
+# F-INTEL-6 ↔ F-TSMC-3 cross-link (US sovereign-fab schedule).
+[meta_domains.intel]
+absorbs = ["architecture", "design", "process", "packaging", "accelerator", "consciousness"]
+type = "idm-foundry-pivot"
+source = "public-source absorption (2026-05-12)"
+entry = "intel/intel.md"
+falsifier_count = 7      # F-INTEL-1..7
+nda_content = false
+note = "Outer envelope wrapping the 6 hexa-chip groups under Intel IDM 2.0 + Intel Foundry pivot; NOT a verb. Public sources only (Intel 10-K SEC EDGAR / Foundry Direct Connect / Ohio + EU + US CHIPS Act filings / IEEE / The Register / Tom's Hardware / SemiAnalysis public-side); zero NDA / zero Intel-internal data / zero SOW-protected partnership detail. SemiAnalysis paid-tier content explicitly excluded."
+
 # ── Dependencies ───────────────────────────────────────────
 # All verbs are spec-first at v1.0.0 — no Python or external deps required.
 [dependencies]
@@ -118,25 +153,28 @@ not_scope = [
 ]
 n6_lattice_caveat = "n=6 invariant referenced for ISA/architecture decomposition only (isa_n6, hexa1). Process/packaging/accelerator groups inherit organising convention without independent invariant-fit verification."
 
-# ── Meta-domain closure (terafab + exynos envelopes, Wave 6~7) ──
+# ── Meta-domain closure (terafab + exynos + tsmc + intel envelopes, Wave 6~I) ──
 # 메타-도메인 closure 는 verb-level closure 와 *별개의* 회계.
-# 두 envelope (terafab Wave 6, exynos Wave 7) 은 28-verb / 6-group
-# 표면을 변경하지 않고 외피로만 등록되며, 각자 falsifier register
-# (terafab: F-TERAFAB-1..10 / exynos: F-EXYNOS-1..7) 와 runnable
-# verify_*.py harness 로 closure 를 선언한다.
-# (verb 카운트는 위 [closure] 가 단일 권위.)
+# 네 envelope (terafab Wave 6, exynos Wave 7, tsmc + intel Wave I) 은
+# 28-verb / 6-group 표면을 변경하지 않고 외피로만 등록되며, 각자
+# falsifier register (terafab: F-TERAFAB-1..10 / exynos: F-EXYNOS-1..7
+# / tsmc: F-TSMC-1..7 / intel: F-INTEL-1..7) 와 runnable verify_*.py
+# harness 로 closure 를 선언한다. (verb 카운트는 위 [closure] 가 단일
+# 권위.) Cross-envelope falsifier 링크: F-TERAFAB-6 ↔ F-INTEL-3
+# (Tesla on Intel 14A via Terafab); F-TSMC-3 ↔ F-INTEL-6 (US sovereign-
+# fab schedule, Arizona Fab 21 Phase 2 vs Ohio One Phase 1).
 [meta_domain_closure]
-envelopes_total = 2                  # terafab + exynos
-envelopes_wired = 2                  # both ship runnable verify_*.py
-envelopes_audited = 2                # cross_doc_audit.py extended to audit both
-falsifiers_total = 17                # F-TERAFAB-1..10 (10) + F-EXYNOS-1..7 (7)
-falsifiers_runnable = 17             # all 17 dispatched by verify_terafab.py + verify_exynos.py
+envelopes_total = 4                  # terafab + exynos + tsmc + intel
+envelopes_wired = 4                  # all four ship runnable verify_*.py
+envelopes_audited = 4                # cross_doc_audit.py extended to audit all four
+falsifiers_total = 31                # F-TERAFAB-1..10 (10) + F-EXYNOS-1..7 (7) + F-TSMC-1..7 (7) + F-INTEL-1..7 (7)
+falsifiers_runnable = 31             # all 31 dispatched by verify_terafab.py + verify_exynos.py + verify_tsmc.py + verify_intel.py
 groups_wrapped = 6                   # all 6 hexa-chip groups absorbed by each envelope
 verdict = "SPEC_PLUS_RUNNABLE"
 verb_surface_unchanged = true        # verbs_total/groups_total NOT bumped
 nda_content = false
-extracted_from = "external-research absorption Wave 6 (Terafab 2026-05-11: Musk announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06) + Wave 7 (Exynos 2026-05-12: Samsung Foundry Forum + IR + IEEE/IEDM + Korean tech press, all public)"
-caveat = "Two meta-domain envelopes; F-TERAFAB-1..6 + F-EXYNOS-1..6 are bench-only at Mk.I (data-arrival pending); both F-7 χ² currently weak (p≈0.86 / p≈0.97), reformulation deferred to Mk.II per each envelope's roadmap. Exynos envelope is brownfield-IDM-heritage comparator to Terafab's greenfield-vertical-megafab claim — complementary, not redundant."
+extracted_from = "external-research absorption Wave 6 (Terafab 2026-05-11: Musk announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06) + Wave 7 (Exynos 2026-05-12: Samsung Foundry Forum + IR + IEEE/IEDM + Korean tech press, all public) + Wave I (TSMC + Intel 2026-05-12: TSMC IR + Symposium + Arizona Commerce + SEC 6-K + Intel 10-K + Foundry Direct Connect + Ohio + EU Magdeburg + CHIPS Act, all public)"
+caveat = "Four meta-domain envelopes; F-TERAFAB-1..6 + F-EXYNOS-1..6 + F-TSMC-1..6 + F-INTEL-1..6 are bench-only at Mk.I (data-arrival pending); all four F-7 χ² currently weak (p≈0.86 / p≈0.97 / p≈0.87 / p≈0.90), reformulation deferred to Mk.II per each envelope's roadmap. Four envelopes encode four publicly-observed fab topologies: Terafab greenfield-vertical-megafab / Exynos brownfield-IDM-heritage / TSMC pure-play-foundry-leader / Intel IDM-foundry-pivot — complementary, not redundant. Cross-envelope falsifier links: F-TERAFAB-6 ↔ F-INTEL-3 (Tesla on Intel 14A via Terafab; same physical fact); F-TSMC-3 ↔ F-INTEL-6 (US sovereign-fab schedule signal, AZ Fab 21 P2 vs Ohio One P1)."
 
 # ── chip-verify closure (Wave J — empirical harness promotion) ─────
 # chip-verify/ promoted from T4 KNOWLEDGE (reference-only) to T3 RUNTIME
