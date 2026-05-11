@@ -27,6 +27,14 @@
 > v1.0.0 initial extraction (2026-05-06): 29 verb spec directories
 > landed across 6 groups; per-verb sandboxes were TBD at that time.
 > Wired in 2026-05-07 — see "Build & verify" below.
+>
+> **Wave J (2026-05-12)**: the `chip-verify/` empirical harness was
+> promoted from T4 KNOWLEDGE to T3 RUNTIME — `make chip-verify` now
+> dispatches the 22 imported chip-verify scripts and `make ci` includes
+> the chip-verify inventory invariant. The documented boot-matrix
+> headline is **34/36 = 94.4%** (per `chip-verify/boot_matrix_report.md`
+> §1); the 2/36 (5.6%) failure cells (HEXA-TOPO × {Starlink, LoRaWAN})
+> stay visible. The 29-verb / 6-group canonical surface is **unchanged**.
 
 > **Distribution**: GitHub canonical at
 > <https://github.com/dancinlab/hexa-chip>. CLI tooling — installed via

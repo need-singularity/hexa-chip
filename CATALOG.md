@@ -38,12 +38,12 @@ document **classifies** without **moving**.
 | **T0** | META (root manifest + closure) | 13 files | source-of-truth | keep, never move |
 | **T1** | MODULES (canonical 29-verb / 6-group) | 29 dirs | v1.0.0 frozen | keep, do not rename |
 | **T2** | ENVELOPE (meta-domains wrapping T1) | 2 dirs | own closure | extend per envelope |
-| **T3** | RUNTIME (execution surface) | 5 dirs | runnable witness | maintain |
-| **T4** | KNOWLEDGE (research + verify-harness + proposals) | 5 dirs | reference-only | preserve provenance |
+| **T3** | RUNTIME (execution surface) | 7 dirs | runnable witness | maintain |
+| **T4** | KNOWLEDGE (research + verify-harness + proposals) | 4 dirs | reference-only | preserve provenance |
 | **T5** | DEFERRED (30+ verb candidates) | 3 dirs | v1.1.0+ staged | keep gated, do not promote yet |
 | **T6** | LEGACY-FROZEN (canon@ded52144 leaves) | 16 dirs | non-canonical | proposal: `legacy/` subdir or absorb |
 
-**Coverage check**: 29 + 2 + 5 + 5 + 3 + 16 = **60 dirs** (T1..T6) — matches `find . -maxdepth 1 -type d` minus `{.git, .claude}`. Plus 13 root files at T0. Audited by `verify_catalog.py` (C1).
+**Coverage check**: 29 + 2 + 7 + 4 + 3 + 16 = **61 dirs** (T1..T6) — matches `find . -maxdepth 1 -type d` minus `{.git, .claude}`. Plus 13 root files at T0. Audited by `verify_catalog.py` (C1).
 
 ---
 
@@ -132,8 +132,9 @@ Cross-cutting tooling — not verbs, not envelopes, but the *machinery* that run
 | Dir | Role | Files | Closure stake |
 |-----|------|------:|---------------|
 | `cli/` | CLI dispatcher (`hexa-chip.hexa` + `hexa-chip-terafab.py`) | 2 | entry point |
-| `verify/` | 31 `.hexa` verify scripts (cli + per-verb sandboxes + cross-pillar checks) | 31 | runnable surface of T1 |
-| `tests/` | unittest invariants (`test_terafab_meta.py` + 4 in-tree tests) | 7 | cross-doc agreement gate |
+| `verify/` | 32 `.hexa` verify scripts (cli + per-verb sandboxes + cross-pillar checks + chip-verify bridge) | 32 | runnable surface of T1 |
+| `tests/` | unittest invariants (`test_terafab_meta.py` + 4 in-tree tests + chip-verify inventory test) | 8 | cross-doc agreement gate |
+| `chip-verify/` (Wave J) | Empirical chip verification harness — 22 imported scripts + cli.hexa/inventory.hexa/aggregate.hexa + CLOSURE.md/README.md | 32 | informational aggregate; gates on 22/4/1 inventory invariant |
 | `firmware/` | Board / HDL / MCU / SIM cross-cutting firmware | 30 | hardware bring-up surface |
 | `state/` | CLI audit log + 2878 marker files (gitignored) | ~2880 | build artifact |
 | `.github/` | GitHub Actions workflows (`mk2-poll.yml` + `mk2-verify.yml`) — Wave H | 2 | Mk.II auto-trigger CI |
@@ -154,9 +155,15 @@ Reference-only artifacts; never the source-of-truth for closure.
 |-----|------|------:|------------|
 | `papers/` | 21 n=6 / chip-substrate research papers | 21 md | imported from `canon@a86ca143` (2026-05-10) |
 | `origins/` | 7 calculator/DSE tools (chip-n6-calc, chip-perf-calc, chip-power-calc, gpu-arch-calc, hexa-rtl, interconnect-calc, semiconductor-calc) | 24 files | imported from `canon@a86ca143/bridge/origins/` |
-| `chip-verify/` | Empirical chip verification harness (CHIP-P3-3 / P5-2 etc.) | 27 | Wave 5 buildout (2026-05-11, commit `3f2c2b7`) |
 | `proposals/` | Strategic counter-proposals (Samsung foundry 6-stage + Terafab §8 counter) | 1 md | original to hexa-chip |
 | `discovery/` | chip-architecture-guide (single md) | 1 md | original |
+
+> **Wave J (2026-05-12)**: `chip-verify/` moved from T4 KNOWLEDGE to T3
+> RUNTIME. The 22 empirical .hexa scripts + 4 .md reports + 1 .json
+> fixture are now dispatchable via `chip-verify/cli.hexa` and wired into
+> `make ci` via `verify/chip_verify_bridge.hexa`. See
+> `chip-verify/CLOSURE.md` for the closure declaration and
+> `hexa.toml [chip_verify_closure]` for the authoritative numbers.
 
 **Stake**: T4 is *informational*, not contractual. Numbers/conclusions in `papers/` and `chip-verify/` may use working assumptions that diverge from `hexa.toml`; the manifest always wins.
 
@@ -338,14 +345,15 @@ In rough priority / cost order:
 | Canonical verbs | 29 (T1) |
 | Canonical groups | 6 (T1) |
 | Meta-domains | 2 (T2: terafab + exynos) |
-| Runtime dirs | 6 (T3; `.github/` joined Wave H) |
-| Knowledge dirs | 5 (T4) |
+| Runtime dirs | 7 (T3 — Wave H added `.github/`, Wave J promoted `chip-verify/`) |
+| Knowledge dirs | 4 (T4 — Wave J removed chip-verify) |
 | Deferred candidates | 3 (T5) |
 | Legacy-frozen leaves | 16 (T6 = 5 hexa-X + 11 chip-topic) |
 | `.gitignored` content | `state/` + `.hexa-cache/` + `build/out/` + `__pycache__/` |
 | Closure verdict (T1) | `SPEC_PLUS_RUNNABLE` (v1.0.0) |
 | Closure verdict (T2-terafab) | `SPEC_PLUS_RUNNABLE` (Wave 6.x) |
 | Closure verdict (T2-exynos) | `SPEC_PLUS_RUNNABLE` (Wave 7) |
+| Closure verdict (T3-chip-verify) | `SPEC_PLUS_RUNNABLE` (Wave J — 34/36 = 94.4% headline) |
 | Authority file | `hexa.toml` |
 | Last classified | 2026-05-12 |
 

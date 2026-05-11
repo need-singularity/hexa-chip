@@ -26,23 +26,29 @@ CLI       := verify/cli.hexa
 VERBS     := verify/verb_runner.hexa
 TESTS     := tests/run_tests.hexa
 SELFTEST  := cli/hexa-chip.hexa
+CHIPVCLI  := chip-verify/cli.hexa
 
 .PHONY: all ci verify verify-quiet verify-json verbs verbs-json tests tests-json \
+        chip-verify chip-verify-list chip-verify-inventory chip-verify-json \
         selftest list clean help install mk2-check
 
 help:
 	@echo "hexa-chip — top-level targets"
-	@echo "  make verify       — run every verify/*.hexa check"
-	@echo "  make verify-quiet — one-line summary per check"
-	@echo "  make verify-json  — JSON output"
-	@echo "  make verbs        — run all 29 per-verb sandboxes"
-	@echo "  make tests        — run every tests/test_*.hexa"
-	@echo "  make selftest     — CLI dispatcher selftest (29-verb sweep)"
-	@echo "  make all          — verify + verbs + tests + selftest"
-	@echo "  make ci           — alias for all (CI entry point)"
-	@echo "  make list         — list registered verify checks + tests"
-	@echo "  make install      — hx install into /Users/ghost/.hx/bin/hexa-chip"
-	@echo "  make mk2-check    — run 5 Mk.II/meta-domain verify scripts (Wave H CI)"
+	@echo "  make verify         — run every verify/*.hexa check (incl. chip-verify bridge)"
+	@echo "  make verify-quiet   — one-line summary per check"
+	@echo "  make verify-json    — JSON output"
+	@echo "  make verbs          — run all 29 per-verb sandboxes"
+	@echo "  make tests          — run every tests/test_*.hexa"
+	@echo "  make chip-verify    — Wave J — run chip-verify aggregate (22 empirical scripts)"
+	@echo "  make chip-verify-list      — list the 22 registered chip-verify scripts"
+	@echo "  make chip-verify-inventory — assert chip-verify inventory invariant"
+	@echo "  make chip-verify-json      — chip-verify aggregate as JSON"
+	@echo "  make selftest       — CLI dispatcher selftest (29-verb sweep)"
+	@echo "  make all            — verify + verbs + tests + chip-verify + selftest"
+	@echo "  make ci             — alias for all (CI entry point) + mk2-check"
+	@echo "  make list           — list registered verify checks + tests"
+	@echo "  make install        — hx install into /Users/ghost/.hx/bin/hexa-chip"
+	@echo "  make mk2-check      — run 5 Mk.II/meta-domain verify scripts (Wave H CI)"
 
 verify:
 	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(CLI)
@@ -68,7 +74,19 @@ tests-json:
 selftest:
 	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(SELFTEST) selftest
 
-all: verify verbs tests selftest
+chip-verify:
+	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(CHIPVCLI) report
+
+chip-verify-list:
+	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(CHIPVCLI) list
+
+chip-verify-inventory:
+	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(CHIPVCLI) inventory
+
+chip-verify-json:
+	@HEXA_CHIP_ROOT=$(ROOT) $(HEXA) run $(CHIPVCLI) report --json
+
+all: verify verbs tests chip-verify selftest
 
 ci: all mk2-check
 

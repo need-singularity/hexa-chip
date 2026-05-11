@@ -34,10 +34,10 @@ T1_GROUPS: dict[str, list[str]] = {
 
 # Tier 2 envelopes.
 T2_DIRS = {"terafab", "exynos"}
-# Tier 3 runtime.
-T3_DIRS = {"cli", "verify", "tests", "firmware", "state", ".github"}
+# Tier 3 runtime. (Wave H added .github; Wave J added chip-verify, promoted from T4.)
+T3_DIRS = {"cli", "verify", "tests", "firmware", "state", ".github", "chip-verify"}
 # Tier 4 knowledge.
-T4_DIRS = {"papers", "origins", "chip-verify", "proposals", "discovery"}
+T4_DIRS = {"papers", "origins", "proposals", "discovery"}
 # Tier 5 deferred.
 T5_DIRS = {"ai_native_arch", "gpgpu_n6", "hexa_ai_native_n6"}
 # Tier 6 legacy-frozen (16: 5 hexa-X + 11 chip-topic).

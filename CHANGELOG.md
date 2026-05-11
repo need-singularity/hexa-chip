@@ -85,6 +85,92 @@ NO-OP by design.
 - F-EXYNOS-7 stays DEFERRED-locked at Mk.II (χ² evaluated inside
   `verify_exynos.py`, not via the poller).
 
+### Added (2026-05-12 — Wave J: chip-verify permanent runtime integration)
+
+Promotes `chip-verify/` from T4 KNOWLEDGE (reference-only) to T3 RUNTIME
+(first-class verify surface). The 22 imported `.hexa` empirical scripts +
+4 `.md` reports + 1 `.json` fixture are now dispatchable via a unified
+harness and wired into `make ci`. **Zero new external claims**,
+**zero verb-surface change** — the 29-verb / 6-group canonical contract
+is unaffected. The 34/36 (94.4%) boot-matrix headline from
+`chip-verify/boot_matrix_report.md` §1 is the documented aggregate; the
+2/36 (5.6%) failure cells (HEXA-TOPO × {Starlink, LoRaWAN}) stay visible.
+
+- `chip-verify/cli.hexa` (~325 lines) — Wave-J dispatcher. Subcommands
+  `list` / `run <script>` / `all` / `report` / `inventory` plus
+  `--json` / `--quiet` flags. Classifies each dispatched script as
+  PASS / PENDING / FAIL / ERROR / UNKNOWN. Honest about the
+  3 ERROR scripts (stage0 double-main provenance: `boot_matrix_3x12`,
+  `verify_chip-3d`, `verify_protocol_bridge`) — files preserved verbatim
+  per the no-rewrite rule.
+- `chip-verify/inventory.hexa` (~22 lines) — 22/4/1 file-count invariant
+  guard. Excludes Wave-J harness files (cli/inventory/aggregate) from
+  the imported-script count.
+- `chip-verify/aggregate.hexa` (~18 lines) — JSON aggregate emitter
+  wrapping `cli.hexa report --json`.
+- `chip-verify/CLOSURE.md` (~236 lines) — 7-section honesty audit
+  mirroring `terafab/CLOSURE.md` + `exynos/CLOSURE.md` structure.
+  Explicitly states: not a verb, not a meta-domain envelope, empirical
+  sandbox, 94.4% headline (not 100%).
+- `chip-verify/README.md` (~145 lines) — navigation index with status
+  badges, 22-script family grouping (CHIP-P3/P5, multi-domain, Xn6
+  microarch), aggregate verdict distribution table.
+- `verify/chip_verify_bridge.hexa` (~25 lines) — Wave-J bridge between
+  `verify/cli.hexa` and `chip-verify/cli.hexa`. Registered as the
+  28th check in the unified verifier (5→6 family groups via the
+  `chip-verify` target). Gates on the inventory invariant only;
+  aggregate is informational.
+- `verify/cli.hexa` — extended `CHECKS` table with `chip-verify` entry
+  (count 27 → 28 registered checks; chip-verify is the empirical
+  sub-tier).
+- `hexa.toml` — added `[chip_verify_closure]` block parallel to
+  `[meta_domain_closure]`: `scripts_total=22`, `reports_total=4`,
+  `fixtures_total=1`, `aggregate_pass_rate=0.944`, `verdict =
+  "SPEC_PLUS_RUNNABLE"`, `verb_surface_unchanged = true`, `nda_content
+  = false`. The `[closure]` block (29-verb / 6-group) is **unchanged**.
+- `Makefile` — added `make chip-verify` / `make chip-verify-list` /
+  `make chip-verify-inventory` / `make chip-verify-json` targets.
+  `chip-verify` added to the `all` (= `ci`) target chain.
+- `terafab/cross_doc_audit.py` — extended with a Wave-J section
+  asserting `[chip_verify_closure]` block agreement with chip-verify/
+  filesystem reality (22 imported .hexa + 4 imported .md + 1 .json),
+  plus headline-presence check (CLOSURE.md must surface 34/36 = 94.4%).
+- `verify_catalog.py` — moved `chip-verify` from `T4_DIRS` to `T3_DIRS`.
+  C1+C2+C3 audit still PASS.
+- `CATALOG.md` — Tier overview table updated (T3 5→6, T4 5→4).
+  T3 detail section now lists `chip-verify/`; T4 detail section drops
+  `chip-verify/` row and adds a Wave-J pointer note. Quick-recall
+  facts table updated with the new closure verdict line.
+- `tests/test_chip_verify_inventory.py` (new) — unittest asserting
+  the 22/4/1 file counts on the filesystem and the
+  `[chip_verify_closure].scripts_total = 22` invariant from hexa.toml.
+- `README.md` — Build & verify section mentions `make chip-verify` and
+  the 34/36 = 94.4% headline.
+
+**Honesty notes**:
+- chip-verify is **NOT** the 30th verb. The 29-verb / 6-group surface
+  stays frozen at v1.0.0. Promotion of any chip-verify experiment to a
+  canonical verb requires the 9-step T5 release checklist in `CATALOG.md`.
+- chip-verify is **NOT** a 3rd meta-domain envelope. It has no
+  falsifier register, no 15-section spec doc, and does not wrap the
+  6 hexa-chip groups. It is an empirical witness layer alongside (not
+  above) the canonical verify surface.
+- The 94.4% is the boot-matrix headline (`boot_matrix_3x12.hexa` ↔
+  `boot_matrix_report.md` §1), **not** the 22-script harness aggregate.
+  The harness aggregate is mixed: 10 PASS / 8 PENDING / 1 FAIL / 3
+  ERROR (observed at promotion). `chip-verify/cli.hexa report --json`
+  surfaces the full breakdown.
+- The 3 ERROR scripts use the legacy stage0 double-main convention.
+  Per the no-rewrite rule (Wave 5 provenance preservation), the files
+  are kept verbatim; the dispatcher reports them as ERROR honestly.
+- chip-verify does **NOT** validate the canonical 29-verb closure.
+  That remains `verify/cli.hexa`'s job (27 pre-existing checks + the
+  new chip-verify bridge = 28 checks total).
+- chip-verify content is original to hexa-chip (Wave 5 import, no
+  external pull). Zero NDA, zero proprietary vendor data, zero
+  Samsung/SK·Hynix/TSMC/Intel internal material. Every numeric trace
+  to n=6 primitives (σ=12, τ=4, φ=2, sopfr=5, J₂=24) + LCG seed=42.
+
 ### Added (2026-05-12 — Wave G: Mk.II falsifier monitoring infrastructure)
 
 Data-arrival pipeline that feeds `F-TERAFAB-1..10` from public sources

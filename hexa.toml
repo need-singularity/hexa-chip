@@ -138,5 +138,28 @@ nda_content = false
 extracted_from = "external-research absorption Wave 6 (Terafab 2026-05-11: Musk announce 2026-03-21, Intel join 2026-04-07, SpaceX TX filing 2026-05-06) + Wave 7 (Exynos 2026-05-12: Samsung Foundry Forum + IR + IEEE/IEDM + Korean tech press, all public)"
 caveat = "Two meta-domain envelopes; F-TERAFAB-1..6 + F-EXYNOS-1..6 are bench-only at Mk.I (data-arrival pending); both F-7 χ² currently weak (p≈0.86 / p≈0.97), reformulation deferred to Mk.II per each envelope's roadmap. Exynos envelope is brownfield-IDM-heritage comparator to Terafab's greenfield-vertical-megafab claim — complementary, not redundant."
 
+# ── chip-verify closure (Wave J — empirical harness promotion) ─────
+# chip-verify/ promoted from T4 KNOWLEDGE (reference-only) to T3 RUNTIME
+# (first-class verify surface). 22 imported .hexa scripts + 4 .md reports
+# + 1 .json fixture, all dispatchable via chip-verify/cli.hexa and wired
+# into `make ci` via verify/chip_verify_bridge.hexa. The 29-verb /
+# 6-group surface is NOT changed by this block — chip-verify is an
+# empirical sandbox, not a verb. The 34/36 boot-matrix headline (94.4%)
+# from boot_matrix_report.md §1 is the documented aggregate; the 2/36
+# (5.6%) failure cells stay visible (HEXA-TOPO × {Starlink, LoRaWAN}).
+[chip_verify_closure]
+scripts_total = 22                # imported .hexa files under chip-verify/
+scripts_wired = 22                # all dispatchable via chip-verify/cli.hexa
+reports_total = 4                 # boot_matrix_report.md + soc_bench_promotion_report.md + stage0_rerun_report.md + verify_chain.md
+fixtures_total = 1                # boot_matrix_3x12.json
+aggregate_pass_rate = 0.944       # 34/36 boot matrix headline (NOT 100%)
+verdict = "SPEC_PLUS_RUNNABLE"
+verb_surface_unchanged = true     # 29-verb / 6-group counts NOT bumped
+nda_content = false
+imported_from = "canon (Wave 5, hexa-chip commit 3f2c2b7)"
+promoted_at = "Wave J (2026-05-12) — T4 KNOWLEDGE -> T3 RUNTIME"
+runnable_surface = "chip-verify/cli.hexa (list/run/all/report/inventory) + verify/chip_verify_bridge.hexa (verify/cli.hexa dispatch) + Makefile target `make chip-verify`"
+caveat = "Empirical chip verification harness; 34/36 boot matrix (94.4%) is the documented number; not 100%. Per-script harness aggregate yields PASS/PENDING/FAIL/ERROR mix (10 PASS / 8 PENDING / 1 FAIL / 3 ERROR observed at promotion); the 3 ERROR cases are stage0-double-main provenance (boot_matrix_3x12, verify_chip-3d, verify_protocol_bridge) preserved per the no-rewrite rule. The verify_test verb closure remains the authority for canonical verification — chip-verify is supplementary."
+
 [cost]
 mac_local_default = "$0 (spec-first; no external tooling invoked)"

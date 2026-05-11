@@ -403,9 +403,101 @@ def audit() -> tuple[int, list[str]]:
         else:
             log.append(f"  [OK]   [meta_domain_closure].{key} = {actual!r}")
 
+    # ── Wave J: chip-verify empirical harness closure audit ──────────────
+    log.append("  " + "-" * 68)
+    log.append("  [WAVE J] chip-verify empirical harness audit")
+    log.append("  " + "-" * 68)
+
+    CVDIR    = REPO / "chip-verify"
+    CV_CLOS  = CVDIR / "CLOSURE.md"
+    CV_README = CVDIR / "README.md"
+
+    cv_closure_txt = read(CV_CLOS)
+    cv_readme_txt  = read(CV_README)
+
+    if not cv_closure_txt:
+        log.append("  [FAIL] chip-verify/CLOSURE.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   chip-verify/CLOSURE.md  ({len(cv_closure_txt):>6} bytes)")
+
+    if not cv_readme_txt:
+        log.append("  [FAIL] chip-verify/README.md not readable")
+        fails += 1
+    else:
+        log.append(f"  [OK]   chip-verify/README.md   ({len(cv_readme_txt):>6} bytes)")
+
+    # --- J1. [chip_verify_closure] block exists ---
+    cvc = toml_data.get("chip_verify_closure", {})
+    if not cvc:
+        log.append("  [FAIL] hexa.toml [chip_verify_closure] block missing")
+        fails += 1
+    else:
+        log.append("  [OK]   hexa.toml [chip_verify_closure] block present")
+
+    # --- J2. scripts_total = 22 = filesystem reality (excl. Wave-J harness) ---
+    import glob as _glob
+    harness = {"cli.hexa", "inventory.hexa", "aggregate.hexa"}
+    cv_hexa_all = _glob.glob(str(CVDIR / "*.hexa"))
+    cv_hexa_imported = [p for p in cv_hexa_all if Path(p).name not in harness]
+    cv_md   = _glob.glob(str(CVDIR / "*.md"))
+    # Exclude CLOSURE.md + README.md (Wave-J docs) from the 4-report count.
+    waveJ_md = {"CLOSURE.md", "README.md"}
+    cv_md_imported = [p for p in cv_md if Path(p).name not in waveJ_md]
+    cv_json = _glob.glob(str(CVDIR / "*.json"))
+
+    expected_cv = {
+        "scripts_total": 22,
+        "scripts_wired": 22,
+        "reports_total": 4,
+        "fixtures_total": 1,
+        "verdict": "SPEC_PLUS_RUNNABLE",
+        "verb_surface_unchanged": True,
+        "nda_content": False,
+    }
+    for key, expected in expected_cv.items():
+        actual = cvc.get(key)
+        if actual != expected:
+            log.append(f"  [FAIL] [chip_verify_closure].{key} = {actual!r} (expected {expected!r})")
+            fails += 1
+        else:
+            log.append(f"  [OK]   [chip_verify_closure].{key} = {actual!r}")
+
+    # aggregate_pass_rate must match the 34/36 = 0.944 boot-matrix headline.
+    apr = cvc.get("aggregate_pass_rate")
+    if apr is None or abs(float(apr) - 0.944) > 1e-3:
+        log.append(f"  [FAIL] [chip_verify_closure].aggregate_pass_rate = {apr!r} (expected ~0.944)")
+        fails += 1
+    else:
+        log.append(f"  [OK]   [chip_verify_closure].aggregate_pass_rate = {apr!r} (34/36 headline)")
+
+    # --- J3. filesystem agreement ---
+    if len(cv_hexa_imported) != 22:
+        log.append(f"  [FAIL] chip-verify/*.hexa imported scripts = {len(cv_hexa_imported)} (expected 22)")
+        fails += 1
+    else:
+        log.append(f"  [OK]   chip-verify/*.hexa imported scripts = 22")
+    if len(cv_md_imported) != 4:
+        log.append(f"  [FAIL] chip-verify/*.md reports = {len(cv_md_imported)} (expected 4)")
+        fails += 1
+    else:
+        log.append(f"  [OK]   chip-verify/*.md imported reports = 4")
+    if len(cv_json) != 1:
+        log.append(f"  [FAIL] chip-verify/*.json fixtures = {len(cv_json)} (expected 1)")
+        fails += 1
+    else:
+        log.append(f"  [OK]   chip-verify/*.json fixtures = 1")
+
+    # --- J4. 34/36 = 94.4% headline appears in CLOSURE.md ---
+    if cv_closure_txt and "34/36" in cv_closure_txt and "94.4" in cv_closure_txt:
+        log.append("  [OK]   chip-verify/CLOSURE.md surfaces 34/36 = 94.4% boot-matrix headline")
+    elif cv_closure_txt:
+        log.append("  [FAIL] chip-verify/CLOSURE.md missing 34/36 = 94.4% headline")
+        fails += 1
+
     log.append("=" * 72)
     if fails == 0:
-        log.append("  ALL FACTS AGREE — Terafab + Exynos cross-doc audit PASS")
+        log.append("  ALL FACTS AGREE — Terafab + Exynos + chip-verify cross-doc audit PASS")
     else:
         log.append(f"  {fails} disagreement(s) — see [FAIL] lines above")
     log.append("=" * 72)
