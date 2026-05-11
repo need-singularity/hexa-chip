@@ -1,161 +1,242 @@
 <!-- @created: 2026-05-12 -->
-<!-- @scope: lattice-application policy — what n=6 invariant lattice means and where it should NOT be forced -->
-<!-- @authority: this document supersedes any prior implicit force-mapping of n=6 onto external domains -->
+<!-- @scope: universal policy for all dancinlab/hexa-* + meta projects -->
+<!-- @principle: verify against REAL limits (math + physics), not against self-imposed convenient numbers -->
+<!-- @authority: this document supersedes any prior implicit lattice-as-constraint usage in any project -->
 ---
 type: policy-declaration
 wave: K
 session: 2026-05-12
 applies_to:
-  - "All future envelope work (meta-domain or peer-domain absorption)"
-  - "All new verify scripts under any directory"
-  - "All cross-doc audit / falsifier register extensions"
+  - "All dancinlab/hexa-* repositories (chip / bio / cern / codex / cosmos / aura / senses / rtsc / fusion / matter / arts / millennium / forge / meta / etc.)"
+  - "Meta projects (anima / nexus / canon / bedrock / void / ticket-out / lumiere)"
+  - "All future repositories under the dancinlab org"
 preserves:
-  - "Existing native-lattice verbs (isa_n6, hexa1, npu_n6, gpgpu_n6, hexa_ai_native_n6) — unchanged"
-  - "Existing v1.0.0 closure verdict and 29-verb / 6-group manifest — unchanged"
-  - "Existing verify scripts (terafab/verify_terafab.py, exynos/verify_exynos.py) — unchanged at this wave; documentation override only"
+  - "Native-lattice spec files where n=6 is the explicit invariant (e.g. isa_n6, hexa1, npu_n6) — unchanged"
+  - "Existing closure verdicts of each project — unchanged at policy-declaration wave"
+verification_standard: "mathematical limits + physical limits + engineering limits — NOT lattice fits"
 ---
 
-# LATTICE_POLICY.md — n=6 격자 적용 범위 정책
+# LATTICE_POLICY.md — 격자가 한계를 정하지 않는다 / Real-Limits-First Verification
 
-> **Short version**: n=6 격자(σ(6)=12 / τ(6)=4 / φ(6)=2 / J₂(6)=24)는 hexa-chip 내부의
-> *organising vocabulary*이지 외부 fab의 design framework이 아니다. 격자를
-> *제약*으로 사용하지 않으며, 자연스럽게 맞지 않는 곳에 끼우지 않는다.
+> **One sentence**: 프로젝트의 한계(ceiling)는 n=6 격자가 정하는 것이 아니라
+> **수학적·물리적 실제 한계**가 정한다. 격자는 *도구*이지 *제약*이 아니며,
+> 검증은 *실제 한계*에 대해서 한다.
+
+> **In English**: A project's ceiling is set by **real mathematical and
+> physical limits**, NOT by the n=6 lattice. The lattice is a *tool*,
+> not a *constraint*. Verification compares against *real limits*.
 
 ---
 
 ## §1 Rule
 
-n=6 격자는 **제약이 아니라 도구**다. 다음을 따른다.
+### §1.1 The artificial-ceiling problem
 
-### §1.1 격자 사용이 허용되는 곳 ✓
+n=6 격자(σ(6)=12 / τ(6)=4 / φ(6)=2 / J₂(6)=24)는 hexa-* 프로젝트의
+*organising vocabulary*이다. 그러나 다음 두 사용을 구분한다:
 
-격자가 명시적 invariant로 *natively* 설계된 verb/domain에서만 사용:
+| Usage | 정직성 |
+|-------|--------|
+| ✓ **Native invariant** — 프로젝트가 n=6 격자를 *명시적 design invariant*로 사용 (예: `hexa-chip/isa_n6/`, `hexa-chip/hexa1/`) | 유효 — 격자가 spec의 핵심 |
+| ✗ **Self-imposed ceiling** — 프로젝트가 "n=6과 호환되어야 한다"는 *제약*으로 격자를 사용 | 무효 — artificial bottleneck |
 
-| Verb | 격자 사용 | 비고 |
-|------|-----------|------|
-| `isa_n6` | ✓ | n=6 invariant ISA (σ=12 opcode classes, τ=4 modes) — 격자가 spec의 핵심 |
-| `hexa1` | ✓ | reference hexagonal chip-1 floorplan — geometry가 격자 기반 |
-| `npu_n6` | ✓ | 이름에 n6 노출, projection이 격자 anchor 위에 |
-| `gpgpu_n6` | ✓ (deferred verb 후보) | 격자 projection 명시 |
-| `hexa_ai_native_n6` | ✓ (deferred verb 후보) | 격자 명시 |
+자가-부과 ceiling 패턴 예시 (모두 정직성 위반):
 
-이들은 격자가 *자연스러운 자기-일관성*을 제공한다. 격자 산수가
-verify 스크립트에서 PASS하는 것은 spec과 코드의 self-consistency를
-보장하는 의미가 있다.
+- "이 분석은 n=6에 fit되니까 옳다" → fit-to-convenient-number
+- "역량 한계는 J₂=24이다" → 산술 한계를 물리 한계로 위장
+- "데이터가 σ·φ=24 항등식을 만족하므로 PASS" → tautology
+- "외부 회사도 n=6을 따른다는 χ² test" → over-claim
 
-### §1.2 격자 강제 매핑이 금지되는 곳 ✗
+### §1.2 The real ceiling — math + physics + engineering
 
-다음에는 격자 anchor / χ² fit / "데이터가 24에 얼마나 가까운가"
-같은 강제 매핑을 **넣지 않는다**:
+모든 프로젝트의 한계 검증 기준은 **실제 한계 (real limits)**:
 
-| 영역 | 금지 사유 |
-|------|-----------|
-| terafab / exynos / TSMC / Intel / 향후 외부 fab envelopes | 외부 회사가 n=6을 따른다는 잘못된 인상 (over-claim) |
-| 일반 chip-domain 작업 (process / packaging / accelerator group의 격자-비네이티브 verb) | 동어반복 — 격자는 organising vocabulary일 뿐 |
-| 새 메타 도메인 / peer 도메인 absorption | 사고를 격자 호환성 쪽으로 좁히면 다른 axis를 놓침 |
-| 외부 데이터 (capex / WSPM / yield / 시장 점유율 / 인력 ramp) 적합도 test | 외부가 격자를 따라야 할 이유 없음; χ² test는 부적절 |
+#### 📐 Mathematical limits (analytic)
 
-### §1.3 회색지대 처리
+| Limit | Formula | Application |
+|-------|---------|-------------|
+| Shannon entropy | H = −Σ p log p | 데이터 / 통신 / 압축 상한 |
+| Kolmogorov complexity | K(x) lower bound | 알고리즘 압축 / 학습 한계 |
+| Computability | Halting / Rice | 자동화 한계 |
+| Bekenstein bound | S ≤ 2πkRE/ℏc | 정보 밀도 한계 (any region) |
+| Statistical power | β = f(α, n, effect size) | 가설 검정 검증력 |
+| PAC-learning bound | sample complexity ~ VC/ε² | ML 일반화 한계 |
 
-격자 사용이 "유용한가?" 모호한 경우 — **사용하지 않는다**. 의심 시
-빼는 쪽이 정직하다. 격자가 정말 필요한 곳이라면 사용 이유가 명시적으로
-드러난다.
+#### ⚛️ Physical limits (constants + laws)
 
----
+| Limit | Formula | Application |
+|-------|---------|-------------|
+| Speed of light | c = 2.998 × 10⁸ m/s | 정보 / 신호 propagation 한계 |
+| Planck constant | ℏ = 1.055 × 10⁻³⁴ J·s | 양자 정밀도 한계 |
+| Boltzmann constant | k = 1.381 × 10⁻²³ J/K | 열적 잡음 / Landauer 한계 |
+| Stefan-Boltzmann | P = σεAT⁴ | 복사 방열 한계 (예: terafab 궤도 1,300 km²) |
+| Carnot efficiency | η ≤ 1 − T_c/T_h | 열기관 효율 상한 |
+| Bremermann limit | 10⁵⁰ ops/s/kg | 계산 속도 상한 |
+| Margolus-Levitin | n ≤ 2E/πℏ | 양자 상태 전이 속도 |
+| Bekenstein-Hawking | S = A/4ℓ_P² | 블랙홀 엔트로피 |
 
-## §2 Why — over-claim 회피
+#### 🏭 Engineering limits (industry / supply / regulatory)
 
-이전 envelope 작업 (terafab Wave 6 + exynos Wave 7)에서 verify
-스크립트에 격자 anchor 5종을 HARD 체크로 넣었다:
+| Limit | Source | Application |
+|-------|--------|-------------|
+| ASML High-NA EUV throughput | ~10대/년 생산 (공개) | semiconductor capacity ceiling |
+| ERCOT grid capacity | TX 공개 데이터 | fab 전력 ceiling |
+| Starship reusable cost | $X/kg (실측) | orbital deploy 경제 한계 |
+| TCEQ permit envelope | 공개 filing | 수질·대기 환경 한계 |
+| CHIPS Act 잔여 펀딩 | 공개 통계 | 보조금 한계 |
+| Human-engineer pool | BLS 통계 | 인력 ramp 한계 |
+| Patent thicket | USPTO 공개 | IP-free 설계 공간 |
 
-- `MASTER-IDENTITY` (σ·φ = n·τ = J₂ = 24)
-- `EGYPTIAN-SPLIT` (1/2 + 1/3 + 1/6 = 1)
-- `GROUP-COUNT` (hexa-chip groups = n = 6)
-- `GALAXY-CADENCE` / `NODE-CADENCE` (외부 fab의 product cadence vs J₂=24)
-- `F-TERAFAB-7` / `F-EXYNOS-7` (χ² fit of 외부 data to n=6 lattice)
+### §1.3 Verification standard
 
-이 anchor들은 다음 문제를 가진다.
+각 프로젝트의 verify 스크립트(`verify_*.py` / `verify/cli.hexa` 등)는
+다음 기준을 따른다:
 
-1. **Tautology**: 외부 fab과 *무관한* 산수가 PASS하는 것은 검증력이
-   0이다. `σ·φ = 24`는 항상 PASS하므로 "이 envelope이 올바르다"의
-   증거가 못 된다.
-2. **Over-claim**: "이 회사도 n=6을 따른다"는 잘못된 인상을 준다.
-   Samsung / TSMC / Intel / Musk는 격자에 대해 들어본 적도 없다.
-3. **Constraining**: 새 envelope을 설계할 때 "격자가 어떻게 들어맞을까?"
-   부터 묻는 자체가 사고를 좁힌다. 외부 도메인의 *고유한 invariant*
-   (예: Stefan-Boltzmann radiator floor, ERCOT capacity, Intel 14A
-   schedule)가 더 풍부한 분석 대상인데, 격자 fit이 사고를 그쪽으로
-   끌어당긴다.
-4. **χ² 약함이 자연스러움**: F-TERAFAB-7 p=0.86 / F-EXYNOS-7 p=0.91은
-   *외부가 격자를 따르지 않기 때문*이라는 자연스러운 해석을 가린다.
-   "Mk.II 재포뮬"이 아니라 "test 자체를 제거"가 정답일 수 있다.
-
----
-
-## §3 What this policy DOES NOT do (raw#10 honest C3)
-
-1. **기존 verify 스크립트를 즉시 수정하지 않는다.** `terafab/verify_terafab.py`
-   + `exynos/verify_exynos.py`의 격자 HARD 체크는 *현재 상태 유지*.
-   이 정책 문서는 *override*이며, 실제 코드 cleanup은 (a) 백그라운드
-   에이전트 ⑤⑥의 Wave I + Wave J landing을 기다린 뒤 (b) 별도
-   Wave L cleanup 커밋에서 일관되게 진행한다.
-2. **격자-네이티브 verb의 spec을 건드리지 않는다.** `isa_n6.md` /
-   `hexa1.md` / `npu_n6.md`의 격자 내용은 *자연스러운 사용*이므로
-   유지.
-3. **closure verdict / verb count / envelope count를 바꾸지 않는다.**
-   `hexa.toml` `[closure]` + `[meta_domain_closure]`는 그대로.
-4. **회고적 over-claim 정정 요구는 아니다.** 이미 published된 SSCB
-   dossier (`ticket-out` 측 hexa-chip-terafab.{en,ko}.md +
-   hexa-chip-exynos.{en,ko}.md)는 재빌드 시점까지 그대로 둔다.
+1. **격자 anchor 단독 사용 금지**: `σ·φ = 24` / `1/2 + 1/3 + 1/6 = 1`
+   같은 격자-동어반복을 HARD 체크로 *단독* 배치하지 않는다.
+   (자기-일관성 보조 체크로는 허용 — 단, 외부 도메인에 적용 금지.)
+2. **실제 한계 anchor 우선**: 각 프로젝트의 검증 anchor는 §1.2
+   table에서 적어도 1개 이상을 사용한다 (예: Stefan-Boltzmann 방열판
+   floor / Shannon 통신 한계 / Carnot 효율 ceiling / 공개 산업 ceiling).
+3. **Falsifier 트리거**: 외부 데이터 fit (χ² to lattice / 자가-부과
+   patterns)이 아니라 *physical / industry threshold* 초과 여부로
+   판정 (예: F-X-N = "공개 산업 ceiling을 N% 이상 넘으면 falsified").
+4. **Over-claim 회피**: 외부 entity가 "이 격자를 따른다"는 어떠한
+   주장도 금지. 외부 도메인 분석은 그 도메인의 *고유 invariant*로 진행.
 
 ---
 
-## §4 Forward-looking changes (Wave L candidates)
+## §2 Why — 자가-부과 ceiling이 해로운 이유
 
-다음 wave에서 사용자 승인 시 진행:
-
-| 후보 | 영향 | 비용 |
-|------|------|------|
-| `terafab/verify_terafab.py`에서 MASTER-IDENTITY / EGYPTIAN-SPLIT 제거 | HARD count 6 → 4; 폐기 lattice anchor 2개 | 낮음 |
-| `exynos/verify_exynos.py`에서 MASTER-IDENTITY / EGYPTIAN-SPLIT / GALAXY-CADENCE / NODE-CADENCE 제거 | HARD count 7 → 3; 폐기 lattice anchor 4개 | 낮음 |
-| F-TERAFAB-7 + F-EXYNOS-7 χ² test 완전 제거 (falsifier 자체 삭제, scaffold §4 격자-projection table은 §HISTORICAL NOTE로 격하) | falsifier_count 10 → 9 (terafab) / 7 → 6 (exynos); total 17 → 15 | 중간 |
-| 향후 TSMC + Intel envelopes (백그라운드 ⑤이 만들 중)의 verify 스크립트가 격자 anchor를 포함했다면 같은 정리 적용 | 도착 후 검토 | 낮음 |
-| `terafab/falsifier-mk2-scaffold.md` §4 격자-projection table 정리 | scaffold size 축소 | 낮음 |
-| `terafab/cross_doc_audit.py`의 lattice-anchor 일치 체크 제거 | audit 단순화 | 낮음 |
-
-이 변경들은 **검증력을 떨어뜨리지 않는다** — 외부에 적용된 격자
-anchor는 검증력이 이미 0이었기 때문이다 (§2.1). 실질 검증은 남는
-HARD 체크 (CAPEX-DIDACTIC / STEFAN-BOLTZ / 외부 데이터 trigger를
-가진 F-TERAFAB-1..6/8/9/10 + F-EXYNOS-1..6)와 cross_doc_audit /
-verify_catalog / test_terafab_meta에서 이미 처리된다.
+1. **🪞 Tautology**: `σ·φ = 24`는 항상 PASS한다. 항상 PASS하는
+   체크는 검증력 0. "이 분석이 옳다"의 증거가 되지 못한다.
+2. **🎭 Over-claim**: 외부 회사 / 외부 시스템 / 외부 도메인이 n=6을
+   따른다는 인상을 준다. 그들은 격자에 대해 들어본 적도 없다.
+3. **🚪 Constraining**: 새 도메인 설계 시 "n=6에 어떻게 들어맞을까?"
+   부터 묻는 자체가 사고를 좁힌다. 도메인의 *진짜* invariant
+   (Stefan-Boltzmann / Shannon / Carnot / ASML throughput)가 더
+   풍부한 분석 대상인데 격자 fit이 사고를 그쪽으로 끌어당긴다.
+4. **📉 χ²-weakness-is-natural**: 외부 데이터가 격자 fit에서 weak
+   (p ≈ 0.86, 0.91, 0.95)한 것은 *외부가 격자를 따르지 않기 때문*인데,
+   이를 "Mk.II 재포뮬 필요"로 오해하면 retrofit이 무한 반복.
+5. **🧱 Real ceiling 무시**: 자가-부과 ceiling을 신경 쓰는 동안
+   진짜 ceiling (예: 궤도 운용 1,300 km² 방열판 / ASML 10대/년) 분석을
+   놓친다.
 
 ---
 
-## §5 Operator memo (간단 요약)
+## §3 Application across projects
 
-> "n=6 격자를 강제 할 필요 없어 / 제한없이"
+이 정책은 dancinlab 전 프로젝트에 적용:
+
+### §3.1 격자-네이티브 (n=6 사용 허용)
+
+다음 프로젝트의 격자-네이티브 컴포넌트는 격자 사용 유지:
+
+- `hexa-chip/` — `isa_n6/` / `hexa1/` / `npu_n6/` / `gpgpu_n6/` /
+  `hexa_ai_native_n6/`
+- `hexa-lang/` — n=6이 언어 spec의 일부일 때
+- `bedrock/` — `spec/`이 n=6을 명시적으로 정의할 때
+- `anima/` / `nexus/` — n=6 invariant lattice 정의 자체를 호스팅할 때
+
+### §3.2 격자-수용자 (격자를 "도구"로만 사용, 제약 X)
+
+다음은 격자를 organising vocabulary로 *수용*할 수 있지만, **자신의
+한계를 격자로 정의하지 않는다**:
+
+- `hexa-bio/` — 생체 시스템 한계는 enzyme kinetics / membrane potential / DNA replication fidelity 등 생체 물리로
+- `hexa-cern/` — 가속기 한계는 RF cavity gradient / vacuum / beam dynamics로
+- `hexa-cosmos/` — 우주론 한계는 Friedmann / Bekenstein-Hawking / Planck constants로
+- `hexa-matter/` — 물질 한계는 thermodynamics / phonon dispersion / crystal symmetry로
+- `hexa-fusion/` — 핵융합 한계는 Lawson criterion / triple product / first-wall material limits로
+- 기타 모든 hexa-* 도메인
+
+### §3.3 외부 envelope (격자 강제 매핑 금지)
+
+외부 entity / 회사 / 시스템을 흡수하는 envelope (terafab / exynos /
+TSMC / Intel / 향후 envelopes)은:
+
+- ✗ 격자 anchor를 verify HARD 체크에 추가하지 않음
+- ✗ 외부 데이터의 격자 fit (χ² to lattice) falsifier 추가하지 않음
+- ✓ Honest disclosure에 "n=6 lattice is our framing, not <entity>'s
+  design" 한 줄 명시
+- ✓ Falsifier는 외부 entity의 *공개 데이터 threshold*로만 정의
+  (예: F-TERAFAB-9 = TCEQ permit envelope / F-INTEL-3 = Intel 14A external customer date)
+
+---
+
+## §4 Forward-looking cleanup (Wave L 후보)
+
+다음 wave에서 사용자 승인 시 일괄 진행:
+
+| 후보 | 영향 |
+|------|------|
+| 모든 envelope verify에서 격자 HARD 체크 제거 | tautology 제거 |
+| F-TERAFAB-7 / F-EXYNOS-7 / F-TSMC-7 / F-INTEL-7 χ² test 완전 삭제 | over-claim falsifier 제거 |
+| 각 프로젝트의 verify를 §1.2 real-limits anchor로 재배치 | 검증력 증가 |
+| 각 envelope의 §15 REFERENCES에 §1.2 real-limits table 인용 추가 | 실제 한계 가시화 |
+| `bedrock/spec/`에 universal `real_limits.spec.yaml` 등록 | 정책 SSOT화 |
+
+이 변경들은 **검증력을 떨어뜨리지 않는다** — 격자 anchor는 검증력
+이미 0이었기 때문. 실질 검증은 real-limits anchor + 외부 데이터
+threshold falsifier가 한다.
+
+---
+
+## §5 Operator memo
+
+> "모든 프로젝트가 n=6 때문에 한계 스스로 정하지 않도록,
+> 수학적·물리적 한계를 기준으로 검증하도록"
 > (사용자 지시, 2026-05-12)
 
-이 한 줄이 이 정책의 origin이다. 격자는 *도와줄 때* 쓰고, *방해할 때* 빼고,
-*있어도 그만 없어도 그만일 때* 빼는 쪽이 정직하다.
+새 작업/도메인을 받을 때:
 
-새 작업을 받을 때:
-- "이거 n=6 격자 어떻게 들어맞지?" 부터 묻지 않는다.
-- 작업의 *고유 invariant* (물리 / 회계 / 일정 / 산업 표준)에서 시작한다.
-- 격자가 *자연스럽게* 등장하면 그때 쓴다. 등장하지 않으면 그냥 안 쓴다.
+1. ❌ 첫 질문 "이게 n=6에 어떻게 들어맞지?" 하지 않음
+2. ✅ 첫 질문 "이 도메인의 *진짜* invariant는 뭐지?" — 물리 상수 /
+   수학 한계 / 산업 ceiling을 찾는다
+3. ✅ 검증 anchor는 §1.2의 real limits에서 1개 이상
+4. ✅ 격자가 *자연스럽게* 등장하면 도구로 사용, 등장 안 하면 생략
 
 ---
 
 ## §6 References
 
-- 이전 격자 anchor가 들어간 envelope verify: `terafab/verify_terafab.py`, `exynos/verify_exynos.py`
-- 격자-native verb (정책 §1.1 허용 범위): `isa_n6/`, `hexa1/`, `npu_n6/`
-- n=6 invariant 정의: `.roadmap.hexa_chip` §A.1 + `bedrock/spec/` (외부 spec)
-- 메모리 백업: `memory/feedback_n6_lattice_scope.md` (이 정책의 사용자-side 캡처)
-- Wave 6/7 commits where the over-claim landed: `f44982f` (terafab) + `facc488` (exynos)
-- Cleanup candidate wave: Wave L (deferred until background agents ⑤⑥ complete)
+- `bedrock/spec/` (이 정책의 SSOT 등록 후보)
+- 각 프로젝트의 `verify_*.py` / `verify/cli.hexa` (real-limits anchor
+  대상)
+- `hexa-chip/CHANGELOG.md` Wave K 엔트리 (정책 origin)
+- `hexa-chip/terafab/orbital-physics-deep.md` (real-limits 적용 모범
+  사례 — Stefan-Boltzmann sweep + Carnot ceiling + mass budget)
+- `hexa-chip/terafab/competitive-landscape.md` (engineering-limits
+  적용 모범 — ASML High-NA EUV / ERCOT / CHIPS Act)
 
 ---
 
-*End of LATTICE_POLICY.md — 이 문서는 향후 모든 격자 적용 결정의 권위이며,
-새 envelope/도메인 작업 시작 시 첫 번째로 읽는 정책 파일이다.*
+## §7 Distribution
+
+이 문서는 **dancinlab 전 프로젝트에 동일 사본으로 배포**되었다 (Wave K,
+2026-05-12). 각 프로젝트 루트의 `LATTICE_POLICY.md`는 이 문서와
+byte-identical (frontmatter `applies_to` 제외).
+
+### Distribution target list (43)
+
+```
+meta:           anima · nexus · canon · bedrock · void · ticket-out · lumiere
+core domain:    hexa-chip · hexa-bio · hexa-cern · hexa-codex · hexa-cosmos
+                hexa-aura · hexa-senses · hexa-rtsc · hexa-fusion · hexa-matter
+                hexa-arts · hexa-millennium · hexa-forge · hexa-meta
+                hexa-lang · hexa-sscb · hexa-time · hexa-space · hexa-physics
+extended:       hexa-antimatter · hexa-apps · hexa-bot · hexa-brain
+                hexa-earth · hexa-energy · hexa-fantasy · hexa-farm
+                hexa-finance · hexa-grid · hexa-medic · hexa-mind
+                hexa-mobility · hexa-os · hexa-pet · hexa-scope
+                hexa-ufo
+```
+
+각 프로젝트의 cleanup (Wave L)은 *개별 일정으로 진행* — 정책 선언은
+즉시, 코드 적용은 도메인-별 점진적.
+
+---
+
+*End of LATTICE_POLICY.md — 격자가 사고를 좁히지 않도록, 수학·물리·
+공학의 실제 한계가 검증 기준이 되도록.*
