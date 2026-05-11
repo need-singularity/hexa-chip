@@ -12,7 +12,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-informational.svg)](CHANGELOG.md)
 [![Verbs: 28 / 7 groups](https://img.shields.io/badge/verbs-28%20%2F%207%20groups-blue.svg)](#verbs)
 [![Status: spec-first](https://img.shields.io/badge/status-spec--first-orange.svg)](#status)
-[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/need-singularity/canon)
+[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/dancinlab/canon)
 [![Verify: 5/5](https://img.shields.io/badge/verify-5%2F5-brightgreen.svg)](#verify)
 [![Sandboxes: 29/29](https://img.shields.io/badge/sandboxes-29%2F29-brightgreen.svg)](#verify)
 [![Tests: 4/4](https://img.shields.io/badge/tests-4%2F4-brightgreen.svg)](#verify)
@@ -241,4 +241,4 @@ auto-resolved by `hx install` when declared in `hexa.toml`.
 
 MIT — see [LICENSE](LICENSE).
 
-Copyright (c) 2026 need-singularity (박민우 <nerve011235@gmail.com>).
+Copyright (c) 2026 dancinlab (박민우 <nerve011235@gmail.com>).

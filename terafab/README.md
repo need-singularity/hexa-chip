@@ -159,7 +159,7 @@ python3 cli/hexa-chip-terafab.py         # CLI subcommand mirror — JSON / text
 
 MIT — see [`../LICENSE`](../LICENSE).
 
-Copyright (c) 2026 need-singularity (박민우 <nerve011235@gmail.com>).
+Copyright (c) 2026 dancinlab (박민우 <nerve011235@gmail.com>).
 
 ---
 
