@@ -19,3 +19,6 @@ build/out/
 # Python cache (terafab verify scripts + tests)
 __pycache__/
 *.pyc
+
+# Mk.II poll cycle log (terafab/poll_mk2.py append target — Wave G)
+terafab/mk2-poll.log

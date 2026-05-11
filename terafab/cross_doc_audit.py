@@ -27,6 +27,8 @@ TFAB   = REPO / "terafab" / "terafab.md"
 SCAF   = REPO / "terafab" / "falsifier-mk2-scaffold.md"
 TOML   = REPO / "hexa.toml"
 README = REPO / "terafab" / "README.md"
+MK2OBS = REPO / "terafab" / "mk2-observations.md"
+SOURCES_MD = REPO / "terafab" / "sources.md"
 
 EXPECTED_GROUPS = [
     "architecture", "design", "process",
@@ -220,7 +222,51 @@ def audit() -> tuple[int, list[str]]:
     else:
         log.append(f"  [OK]   [meta_domains.terafab].absorbs = {absorbs}")
 
-    # --- 11. closure totals unchanged -------------------------------------
+    # --- 11.5. Mk.II observations register completeness (Wave G) ---------
+    # The mk2-observations.md table MUST contain exactly the {F-TERAFAB-1,
+    # ..., F-TERAFAB-10} set — no missing, no extra IDs. Every URL listed
+    # in its ## Source registry MUST also live in terafab/sources.md.
+    mk2_txt = read(MK2OBS)
+    src_txt = read(SOURCES_MD)
+    if not mk2_txt:
+        log.append("  [DEFERRED] terafab/mk2-observations.md not present (Wave G pending)")
+    else:
+        log.append(f"  [OK]   mk2-observations.md ({len(mk2_txt):>6} bytes)")
+        mk2_falsifiers = set(re.findall(r"F-TERAFAB-\d+", mk2_txt))
+        expected_set = {f"F-TERAFAB-{i}" for i in range(1, 11)}
+        missing_f = expected_set - mk2_falsifiers
+        extra_f   = mk2_falsifiers - expected_set
+        if missing_f or extra_f:
+            log.append(f"  [FAIL] mk2-observations.md falsifier set mismatch "
+                       f"(missing={sorted(missing_f)} extra={sorted(extra_f)})")
+            fails += 1
+        else:
+            log.append("  [OK]   mk2-observations.md falsifier set = "
+                       "{F-TERAFAB-1..10} exactly")
+        if src_txt:
+            reg_match = re.search(r"##\s+Source registry.*?```(.*?)```",
+                                  mk2_txt, re.DOTALL)
+            if reg_match:
+                mk2_urls = set(re.findall(r"https?://\S+", reg_match.group(1)))
+                src_urls = set(re.findall(r"https?://\S+", src_txt))
+                clean = lambda u: u.rstrip(".,);")
+                mk2_urls = {clean(u) for u in mk2_urls}
+                src_urls = {clean(u) for u in src_urls}
+                orphans = mk2_urls - src_urls
+                if orphans:
+                    log.append(f"  [FAIL] mk2-observations.md URLs not in sources.md: "
+                               f"{sorted(orphans)[:3]}{'...' if len(orphans) > 3 else ''}")
+                    fails += 1
+                else:
+                    log.append(f"  [OK]   mk2-observations.md URLs \u2286 sources.md "
+                               f"({len(mk2_urls)} URLs all cross-cited)")
+            else:
+                log.append("  [FAIL] mk2-observations.md missing '## Source registry' block")
+                fails += 1
+        else:
+            log.append("  [DEFERRED] terafab/sources.md not present — URL cross-check skipped")
+
+    # --- 12. closure totals unchanged -------------------------------------
     closure = toml_data.get("closure", {})
     verbs_total = closure.get("verbs_total")
     groups_total = closure.get("groups_total")

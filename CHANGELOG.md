@@ -5,6 +5,63 @@ All notable changes to **hexa-chip** are documented here. Format follows
 
 ## [Unreleased]
 
+### Added (2026-05-12 — Wave G: Mk.II falsifier monitoring infrastructure)
+
+Data-arrival pipeline that feeds `F-TERAFAB-1..10` from public sources
+starting 2026-Q3. **Zero new external claims** — every trigger threshold
+in the new files mirrors the locked text in
+`terafab/falsifier-mk2-scaffold.md` §2/§3; every URL mirrors
+`terafab/sources.md` `SRC-TERAFAB-001..016`. The 29-verb / 6-group surface
+and the v1.0.0 closure verdict are unchanged. All 10 falsifiers remain
+`DEFERRED` until 2026-Q3 observations land.
+
+- `terafab/mk2-observations.md` (192) — append-only log with one SCAFFOLD
+  baseline row per falsifier (F-TERAFAB-1..10), all marked
+  `pending — SCAFFOLD — DEFERRED`. Includes verbatim `## Polling schedule`
+  copy from scaffold §5 and a `## Source registry` block listing the
+  16 known URLs tagged with their `F1..F10` informees. Extraction regexes
+  (scaffold-given, `::`-separated to survive `|`-in-pattern) registered
+  for 8 of 10 falsifiers; F-TERAFAB-5 (Mk.VI terminal) and F-TERAFAB-7
+  (χ² aggregate) stay DEFERRED-locked by design.
+- `terafab/poll_mk2.py` (300) — stdlib-only Mk.II monitor with
+  `FalsifierMonitor` class (one `check_fN()` method per falsifier),
+  default no-network table summary, `--check` JSON emitter
+  (schema `terafab.mk2.verdict.v1`), `--dry-run` URL+regex lister,
+  and `--poll` live mode (only path that touches the network).
+  Append-only writer never deletes history. Logs cycle events to
+  `terafab/mk2-poll.log` (gitignored). Verdicts polled fresh land as
+  `PENDING_REVIEW` until a human classifies them; the poller does not
+  flip verdicts unilaterally.
+- `terafab/MK2.md` (165) — operator's manual covering when to run,
+  how to interpret each mode, per-falsifier PASS/FAIL/goalpost-move
+  semantics, failure-mode recovery (Wikipedia takedown, Texas filing
+  pivot, project cancellation).
+- `terafab/verify_terafab.py` — added `read_mk2_observations()` and
+  the `_mk2_or_deferred()` indirection. Each Mk.II-gated falsifier
+  (`F-TERAFAB-1..6, 8..10`) now reads its verdict from
+  `mk2-observations.md` when one is present; falls back to the
+  hardcoded `DEFERRED` scaffold note otherwise. The 6 HARD checks
+  (MASTER-IDENTITY, GROUP-COUNT, EGYPTIAN-SPLIT, CAPEX-DIDACTIC,
+  STEFAN-BOLTZ, F-TERAFAB-7 χ²) are NEVER overridden. Mk.I behaviour
+  byte-identical: 6/6 HARD PASS, 9 DEFERRED.
+- `terafab/cross_doc_audit.py` — added Mk.II observations register
+  check (§11.5): falsifier set must be exactly `{F-TERAFAB-1..10}`;
+  every URL in `## Source registry` must also live in `sources.md`.
+- `.gitignore` — added `terafab/mk2-poll.log`.
+
+**Honesty notes**:
+- Data may never arrive for all falsifiers. F-TERAFAB-9 (utility
+  envelope) only becomes testable if Terafab files a TCEQ permit
+  under the announced one-roof scope; if Musk pivots venue (non-Texas
+  site, non-public utility vehicle), F-TERAFAB-9 becomes untestable
+  in its current form — the honest move is to retire the falsifier as
+  scope-undefined, not invent a substitute.
+- F-TERAFAB-5 stays DEFERRED-locked at Mk.II (Mk.VI 2035 terminal).
+- F-TERAFAB-7 (χ²) is evaluated inside `verify_terafab.py`, not via
+  the poller.
+- The 6 HARD checks remain deterministic and pure (no observation
+  hook) — invariants must not depend on data freshness.
+
 ### Added (2026-05-12 — repository taxonomy)
 
 Non-invasive 7-tier classification of every top-level directory and root file.
