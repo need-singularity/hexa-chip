@@ -152,6 +152,12 @@ python3 cli/hexa-chip-terafab.py         # CLI subcommand mirror — JSON / text
   registration (no verb addition; 29-verb / 6-group counts preserved).
 - **Closure declaration**: [`CLOSURE.md`](CLOSURE.md) — full inventory,
   invariants asserted, honest caveats, what-not-claimed.
+- **SSCB outreach dossier**: `~/core/ticket-out/07_outreach/_projects/hexa-chip-terafab.{en,ko}.md`
+  (5,800 / 5,798 lines · 160 sections each · D-option full-source-coverage of all
+  21 terafab/ files including `pipeline-stages.md`). Built via
+  `build/tools/build_full_repo_en.sh` + `build_full_repo.sh`; forbidden-token
+  redaction PASS; Korean residue in `.en.md` = 0. Pushed to
+  <https://github.com/dancinlab/ticket-out> @ `9773c35`.
 
 ---
 

@@ -117,6 +117,8 @@ Outer wrappers absorbing external observations onto the 6-group surface. Do **no
 
 **Action**: extend each envelope's closure independently. Future envelopes (e.g. TSMC, Intel, Rapidus) register under `[meta_domains.<name>]` and inherit the Terafab pattern (15-section + runnable verify + cross-doc audit).
 
+**External SSCB-grade dossier** (Terafab): `~/core/ticket-out/07_outreach/_projects/hexa-chip-terafab.{en,ko}.md` — D-option full-source-coverage outreach dossier (160 sections / 5,800 lines per edition) embedding all 21 `terafab/` files in path-sorted full inclusion. Published to <https://github.com/dancinlab/ticket-out> at commit `9773c35` (2026-05-12). Forbidden-token check + Korean-residue check both PASS.
+
 ---
 
 ## T3 — RUNTIME (execution surface)
