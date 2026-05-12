@@ -220,29 +220,28 @@ subcommands:
 
 ## Install
 
-### Via `hx` (recommended)
-
 ```bash
-# Install hexa-lang (ships `hexa` + `hx` package manager)
-curl -fsSL https://raw.githubusercontent.com/dancinlab/hexa-lang/main/install.sh | bash
+# 1. Install hexa-lang (gives you `hexa` + `hx` package manager)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/dancinlab/hexa-lang/main/install.sh)"
 
-# Install hexa-chip
-hx install hexa-chip          # global, pulls latest from registry
-hx install hexa-chip@1.0.0    # pin specific version
-hexa-chip --version
+# 2. Install hexa-chip
+hx install hexa-chip
 ```
 
-`hx install hexa-chip` pulls from <https://github.com/dancinlab/hexa-chip> and
-installs the standalone CLI under `$HX_HOME/bin/hexa-chip`. The hexa-lang
-package registry resolves any cross-substrate dependencies declared in
-`hexa.toml`.
+## Run
 
-### Optional deps
-
-`hexa-chip` is **pure hexa-lang stdlib** — zero Python deps, zero external.
-All default subcommands run with `hx install hexa-chip` alone. Cross-substrate
-extras (e.g. `qmirror` for ANU-QRNG + Aer state-vector simulator) are
-auto-resolved by `hx install` when declared in `hexa.toml`.
+```bash
+hexa-chip status              # group + verb count table + caveats
+hexa-chip show <verb>         # echo spec path for a single verb
+hexa-chip selftest            # verify all 30 verb dirs present
+hexa-chip terafab             # meta-domain envelope + 10 falsifiers + closure verdict
+hexa-chip verify firmware-mcu # enumerate firmware/mcu/*.hexa controllers
+hexa-chip verify firmware-hdl # enumerate firmware/hdl/*.v Verilog top-levels
+hexa-chip verify board        # Phase E paper schematics + KiCad pro + power chain
+hexa-chip verify gpgpu        # Phase F GPGPU verb (F-CHIP-5 T1 + T2 + T3)
+hexa-chip verify ai-native    # Phase G AI-native silicon (F-AI1..F-AI2c-A T1+T2+T3)
+hexa-chip verify all          # aggregate firmware-mcu + firmware-hdl + board + gpgpu + ai-native
+```
 
 ---
 ## License
