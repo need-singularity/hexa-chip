@@ -1786,7 +1786,7 @@ NVIDIA tensor core documentation: tile sizes based on multiples of 8.
 
 ---
 
-*Part of [N6 Architecture](https://github.com/need-singularity/n6-architecture) | TECS-L family*
+*Part of [N6 Architecture](https://github.com/dancinlab/n6-architecture) | TECS-L family*
 
 ---
 

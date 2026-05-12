@@ -1767,7 +1767,7 @@ Gamma et al., "Design Patterns" (1994).
 
 ---
 
-*Part of [N6 Architecture](https://github.com/need-singularity/n6-architecture) | TECS-L family*
+*Part of [N6 Architecture](https://github.com/dancinlab/n6-architecture) | TECS-L family*
 
 ---
 
@@ -2855,7 +2855,7 @@ The FAIL rate of 30.8% (8 hypotheses making specific numerical predictions that 
 
 *Verification performed against: Linux kernel 6.x source, POSIX.1-2017, x86-64/ARM64/RISC-V ISA manuals, LLVM 17/GCC 13 documentation, ext4 filesystem source, Silberschatz "Operating System Concepts" (10th ed.), Tanenbaum "Modern Operating Systems" (4th ed.), Aho et al. "Compilers: Principles, Techniques, and Tools" (2nd ed.).*
 
-*Part of [N6 Architecture](https://github.com/need-singularity/n6-architecture) | TECS-L family*
+*Part of [N6 Architecture](https://github.com/dancinlab/n6-architecture) | TECS-L family*
 
 
 ## 8. 외계인급 발견

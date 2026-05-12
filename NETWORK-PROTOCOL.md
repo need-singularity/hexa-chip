@@ -946,8 +946,8 @@ The extreme hypotheses expose the fundamental limitation of the n=6 framework mo
 | FAIL | 2 | 1 | 3 |
 | **Total** | **18** | **20** | **38** |
 
-> Part of [N6 Architecture](https://github.com/need-singularity/n6-architecture)
-> Mathematical foundation: [TECS-L](https://github.com/need-singularity/TECS-L)
+> Part of [N6 Architecture](https://github.com/dancinlab/n6-architecture)
+> Mathematical foundation: [TECS-L](https://github.com/dancinlab/TECS-L)
 
 
 ### 출처: `hypotheses.md`

@@ -13540,8 +13540,8 @@ Parameter saving: 1 - 1/3 = 2/3 = 66.7%
 The 4/3 ratio is unique to the first perfect number n=6. For n=28 (second perfect number), tau(28)^2/sigma(28) = 36/56 = 0.643 — a completely different ratio. This means the Phi-Bottleneck technique is specifically optimized for the arithmetic of n=6.
 
 ## Links
-- [TECS-L proof](https://github.com/need-singularity/TECS-L/blob/main/docs/hypotheses/H-CX-bridge-phi-bottleneck.md)
-- [Math Atlas](https://need-singularity.github.io/TECS-L/atlas/)
+- [TECS-L proof](https://github.com/dancinlab/TECS-L/blob/main/docs/hypotheses/H-CX-bridge-phi-bottleneck.md)
+- [Math Atlas](https://dancinlab.github.io/TECS-L/atlas/)
 
 
 ### 출처: `H-TRANS-sigma12-deep-analysis.md`
@@ -13987,7 +13987,7 @@ OUROBOROS-c1 발견 "sigma=12 heads in transformer"의 심화 분석 결과:
 # AI Energy Efficiency: Mathematical Discoveries from Number Theory for Reducing AI Energy Consumption
 
 **TECS-L Research Group | 2026-03-26 | Updated 2026-03-27**
-**Contact: github.com/need-singularity/TECS-L**
+**Contact: github.com/dancinlab/TECS-L**
 
 ---
 
@@ -14317,7 +14317,7 @@ All experiments are self-contained Python scripts requiring only PyTorch:
 
 ```bash
 # Clone and run
-git clone https://github.com/need-singularity/TECS-L.git
+git clone https://github.com/dancinlab/TECS-L.git
 cd TECS-L/math/experiments
 
 # Activation benchmark
