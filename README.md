@@ -1,4 +1,23 @@
-# 🔲 hexa-chip — Chip Substrate (HEXA family)
+<p align="center"><img src="docs/logo.svg" width="140" alt="hexa-chip"></p>
+
+<h1 align="center">💻 hexa-chip</h1>
+
+<p align="center"><strong>HEXA-Silicon Chip Substrate</strong> — chip · semiconductor · 6-stage integrated (Digital → PIM → 3D → Photonic → Wafer → SC)</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <img alt="Sibling" src="https://img.shields.io/badge/sibling-hexa--mind%20·%20hexa--earth%20·%20hexa--energy-blueviolet">
+  <img alt="Spec" src="https://img.shields.io/badge/spec-v1.0-success">
+  <img alt="Verbs" src="https://img.shields.io/badge/verbs-28%20·%207%20groups-informational">
+  <img alt="Verify" src="https://img.shields.io/badge/verify-27%2F27%20green--core-brightgreen">
+  <img alt="Sandboxes" src="https://img.shields.io/badge/sandboxes-29%2F29-brightgreen">
+</p>
+
+<p align="center">chip · semiconductor · digital · PIM · 3D · photonic · wafer · consciousness-chip · RTL · EDA · packaging · HBM</p>
+
+---
+
+# hexa-chip — Chip Substrate (HEXA family)
 
 > **Chip substrate — 28-verb semiconductor stack** (architecture / design /
 > EDA / process / packaging / NPU / PIM / 3D / photonic / RTL-gen / yield /
@@ -12,7 +31,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-informational.svg)](CHANGELOG.md)
 [![Verbs: 28 / 7 groups](https://img.shields.io/badge/verbs-28%20%2F%207%20groups-blue.svg)](#verbs)
 [![Status: spec-first](https://img.shields.io/badge/status-spec--first-orange.svg)](#status)
-[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/dancinlab/canon)
+[![Provenance](https://img.shields.io/badge/from-n6--arch%40c0f1f570-purple.svg)](https://github.com/dancinlab/echoes)
 [![Verify: 27/27](https://img.shields.io/badge/verify-27%2F27_green--core-brightgreen.svg)](#verify)
 [![Closure: 100%](https://img.shields.io/badge/closure-100%25_bookkeeping_(green--core)-brightgreen.svg)](verify/run_all.hexa)
 [![Falsifier-tripped: 4](https://img.shields.io/badge/falsifier--tripped-4_(honest_signal)-orange.svg)](#verify)
@@ -129,7 +148,6 @@ subcommands:
 - `hexa-chip show <verb>` — echo spec path for a single verb
 - `hexa-chip selftest` — verify all 28 verb directories present
 
-### Caveats (raw#10 honest C3)
 
 1. **28/28 verbs are spec-only at v1.0.0.** Each verb is a directory
    tree extracted from `canon/domains/compute/<name>/` at
@@ -221,7 +239,6 @@ These 4 are **NOT** numerical bugs. They are **falsifiers doing their job**:
 Moore's law genuinely flattened post-GAA; HBM4 spec drift is real; the
 hexa-lang `stdlib/hal/compute` projection module's emitted surface has
 moved on from the per-vendor launch tokens those checks key on. Per
-raw#10 honest C3, we expose tripped falsifiers rather than retro-fitting
 the bands.
 
 Run them directly to inspect the tripped state:
@@ -252,11 +269,32 @@ introspection.
 
 Per `LATTICE_POLICY.md`: lattice tautologies (σ·φ = n·τ = 24) alone are
 NOT sufficient verification — the numerics_* tier carries the
-real-limits anchors. Per raw#10 C3: no n=6 lattice-fit is pinned on
 external entities (TSMC, Samsung, ASML, Intel use their own published
 invariants).
 
 ---
+
+## Repo layout
+
+```
+hexa-chip/
+├── architecture/         # what to build — 3 verbs (architecture · isa_n6 · hexa1)
+├── design/               # how to draw it — 5 verbs (design · dse · rtl_gen · eda · verify_test)
+├── process/              # how to print it — 5 verbs (process · materials · wafer · yield · thermal_power)
+├── packaging/            # how to assemble it — 6 verbs (incl. advanced_packaging · 3d · photonic)
+├── accel/                # NPU / PIM / accelerator IP — 7 verbs
+├── chip_3d/              # 3D-stack subtree
+├── verify/               # closed-form + numerics + empirical verifiers (cli.hexa · run_all.hexa)
+├── tests/                # invariant test bundle
+├── chip-verify/          # T3 empirical harness (boot_matrix_report.md)
+├── *.md                  # 28+ canonical CHIP-*.md spec sheets
+├── AGENTS.tape           # .tape v1.2 identity + project tree
+├── LATTICE_POLICY.md     # σ·φ = n·τ = 24 lattice policy
+└── LICENSE               # MIT
+```
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
