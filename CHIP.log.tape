@@ -55,9 +55,11 @@
 
 
 
+
 @A milestone_design_eda :: chip [d=2026-04-15 ok]
   <- milestone_architecture_verb
   => "design + EDA verbs — synthesis / placement / routing flows"
+
 
 
 
@@ -67,14 +69,17 @@
 
 
 
+
 @A milestone_3d_photonic :: chip [d=2026-05-10 ok]
   <- milestone_npu_pim
   => "3D stacking + photonic interconnect verbs — beyond-Moore scaling"
 
 
 
+
 @A milestone_consciousness_chip :: chip [d=2026-05-14 ok]
   <- milestone_3d_photonic, c2
   => "consciousness-chip verb — sister of anima Living Consciousness Agent + hexa-brain neural substrate"
+
 
 
