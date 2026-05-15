@@ -46,7 +46,7 @@
 @I id001 := "hexa-chip" :: identity-claim [d=2026-05-14 active]
   kind = "HEXA-Silicon family — chip · semiconductor"
   brief = "HEXA-Silicon family · chip · semiconductor · 6-stage integrated (Digital→PIM→3D→Photonic→Wafer→SC)"
-  parent = "dancinlab/echoes"
+  parent = "dancinlab"
 
 @L l1 := "repo-layout" :: structure [active]
   .roadmap.hexa_chip -> "file"
