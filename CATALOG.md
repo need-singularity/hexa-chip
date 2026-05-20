@@ -306,7 +306,6 @@ When two layers disagree, `hexa.toml` wins. CATALOG.md is descriptive, not presc
 
 ---
 
-## Honesty audit (raw#10 C3)
 
 What this catalog claims, and what it does **not** claim.
 

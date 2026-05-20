@@ -115,7 +115,6 @@ by `verify_intel.py` and/or the extended `terafab/cross_doc_audit.py`
    - F-INTEL-6 (Ohio One Phase 1 HVM) ↔ F-TSMC-3 (AZ Fab 21 N2 HVM).
      Joint US-sovereign-fab schedule signal.
 
-## §4 Closure caveats (raw#10 honest C3)
 
 Honest readings of what this closure does not yet prove:
 

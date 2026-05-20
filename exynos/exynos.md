@@ -269,7 +269,6 @@ are descriptive coincidences, not derivations.**
 | 24-month flagship cadence (S24 → S26) | J₂ = 24 mo | 0 | EXACT |
 | Samsung Foundry rank 2 worldwide | φ = 2 | 0 | EXACT |
 
-**Caveat (own#11 honesty)**: The fits above are *registration of
 coincidences*. The same pattern recurs in Terafab §4 with similar
 weak χ². **F-EXYNOS-7 (§7) tests whether the coincidence rate exceeds
 chance — at Mk.I the χ² test is too weak to discriminate (p ≈ 0.85);
@@ -441,7 +440,6 @@ cost-parity audited 2033) is the terminal claim falsifier.
 | F-EXYNOS-6 | SF1.0 HVM by 2030 per public node-shrink cadence | SF1.0 HVM slips past 2031-Q4 (public Forum confirmation of slip) | 3 (long-horizon) |
 | F-EXYNOS-7 | n=6 lattice projection on Exynos figures beats chance | χ² of §4 fits → p < 0.05 (currently p ≈ 0.85 → falsifier weak; reformulate at Mk.II with measured Exynos 2500 + SF2 metrics) | 1 (immediate) |
 
-### Counter-examples (raw#10 honesty — what n=6 cannot explain)
 
 ```
 - Exynos 2400 die size in mm² (no n=6 prediction; depends on RTL choices)

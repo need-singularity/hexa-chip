@@ -291,7 +291,6 @@ are descriptive coincidences, not derivations.**
 | TSMC global foundry rank | 1 (rank) | -1 | NEAR-but-actually-#1; n=6 lattice has no φ=1 anchor — register as coincidence |
 | 3 major global sites (TW + AZ + KMM/ESMC) | τ-φ = 2 (close)| +1 | NEAR (counting TW as one bucket gives 3 buckets) |
 
-**Caveat (own#11 honesty)**: The fits above are *registration of
 coincidences*. The same pattern recurs in Terafab §4 and Exynos §4 with
 similar weak χ². **F-TSMC-7 (§7) tests whether the coincidence rate
 exceeds chance — at Mk.I the χ² test is too weak to discriminate
@@ -477,7 +476,6 @@ F-INTEL-6 (Ohio One HVM) are the two "US sovereign-fab schedule"
 falsifiers; their joint slip-or-hit pattern is the cleanest 2027-2028
 data signal.
 
-### Counter-examples (raw#10 honesty — what n=6 cannot explain)
 
 ```
 - TSMC monthly wafer output in any given fab (no n=6 prediction; capacity is project-managed)

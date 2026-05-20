@@ -124,7 +124,6 @@ by `chip-verify/cli.hexa` and/or the verify dispatcher bridge:
    uses randomness pins the LCG seed; output is byte-identical across
    runs. The boot_matrix_3x12.json fixture is the captured ground truth.
 
-## §4 Closure caveats (raw#10 honest C3)
 
 Honest readings of what this closure does NOT yet prove:
 

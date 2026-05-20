@@ -288,7 +288,6 @@ are descriptive coincidences, not derivations.**
 | Intel Ohio One announced phase count | 2 (initial) | 0 | EXACT-by-coincidence (φ = 2) |
 | Intel global capex 2024 / TSMC 2024 ratio | 25/30 ≈ 5/6 = (σ-2)/σ × τ⁻¹ × residue | 0 | NEAR (number-theoretic coincidence) |
 
-**Caveat (own#11 honesty)**: The fits above are *registration of
 coincidences*. The same pattern recurs in Terafab §4, Exynos §4, and
 TSMC §4 with similar weak χ². **F-INTEL-7 (§7) tests whether the
 coincidence rate exceeds chance — at Mk.I the χ² test is too weak
@@ -494,7 +493,6 @@ survival 2033) is the terminal claim falsifier.
   (Ohio One Phase 1 vs Arizona Fab 21 Phase 2). Joint slip pattern
   is the cleanest 2027-2028 data signal.
 
-### Counter-examples (raw#10 honesty — what n=6 cannot explain)
 
 ```
 - Intel monthly wafer output per fab (no n=6 prediction; capacity is project-managed)

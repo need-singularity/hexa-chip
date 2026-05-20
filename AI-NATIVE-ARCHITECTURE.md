@@ -1379,7 +1379,6 @@ if __name__ == "__main__":
 - atlas constants (sigma=12, phi=2, n=6, tau=4, sigma_n=72, J2=24, sopfr_n=5).
 - BT-AI1 / BT-AI2 / BT-AI2c sweep harness (`reports/anomaly/`).
 - domains/compute/chip-design (silicon process anchor).
-- bridge constants (cross-engine dimension-perception F5 fix, raw#11).
 
 ## §12 TIMELINE
 

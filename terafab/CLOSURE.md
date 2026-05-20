@@ -100,7 +100,6 @@ by `verify_terafab.py` and/or `cross_doc_audit.py` (per §6 recipe):
    Starlink-V3 thermal envelope; F-TERAFAB-5 has a hard physical lower
    bound regardless of capex.
 
-## §4 Closure caveats (raw#10 honest C3)
 
 Honest readings of what this closure does not yet prove:
 

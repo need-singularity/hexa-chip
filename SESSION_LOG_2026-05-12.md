@@ -78,7 +78,6 @@ Their output will be visible at:
 | `make mk2-check` | PASS |
 | yaml.safe_load both workflows | parse PASS |
 
-## Honest caveats (raw#10 C3)
 
 1. **Falsifier register is bench-only at Mk.I**: F-TERAFAB-1..6/8/9/10 (9 of 10)
    and F-EXYNOS-1..6 (6 of 7) are DEFERRED waiting for 2026-Q3+ data.

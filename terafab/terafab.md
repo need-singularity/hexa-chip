@@ -418,7 +418,6 @@ delivered, audited) is the terminal falsifier — if 2035 delivery
 | F-TERAFAB-6 | Intel 14A (1.4 nm) volume by 2030 | Intel 14A delayed past 2031 or technology pivot | 1 (Intel-roadmap-checkable) |
 | F-TERAFAB-7 | n=6 lattice projection beats chance | χ² of §4 fits → p < 0.05 (currently p ≈ 0.86 → falsifier weak; reformulate at Mk.II) | 1 (immediate) |
 
-### Counter-examples (raw#10 honesty — what n=6 cannot explain)
 
 ```
 - Tesla AI5 die size (no n=6 prediction; depends on RTL choices)

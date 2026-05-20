@@ -99,7 +99,6 @@ def main(argv: list[str]) -> int:
     print(f"    python3 {REPO}/terafab/cross_doc_audit.py")
     print(f"    python3 {REPO}/terafab/verify_terafab.py")
     print()
-    print("  Caveats (raw#10 honest C3):")
     print("    1. terafab is a META-DOMAIN, not a verb — verb counts unchanged.")
     print("    2. F-TERAFAB-1..6 are bench-only at Mk.I (data-arrival pending).")
     print("    3. F-TERAFAB-7 χ² weak at Mk.I (p≈0.86); reformulation deferred Mk.II.")
